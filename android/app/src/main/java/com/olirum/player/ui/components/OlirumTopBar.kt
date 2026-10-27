@@ -48,20 +48,13 @@ fun OlirumTopBar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
             ) {
-                Box(
+                Image(
+                    painter = androidx.compose.ui.res.painterResource(id = com.olirum.player.R.drawable.olirum_logo_icon),
+                    contentDescription = "Logo OlirumPlay",
                     modifier = Modifier
                         .size(36.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(OlirumGradientBrush),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.GraphicEq,
-                        contentDescription = "Logo",
-                        tint = Color.White,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
+                )
 
                 Spacer(modifier = Modifier.width(12.dp))
 

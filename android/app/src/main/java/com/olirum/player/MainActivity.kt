@@ -8,10 +8,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.animation.Crossfade
+import androidx.compose.runtime.*
 import androidx.core.content.ContextCompat
 import com.olirum.player.ui.navigation.OlirumNavGraph
+import com.olirum.player.ui.screens.SplashScreen
 import com.olirum.player.ui.theme.OlirumPlayTheme
 import com.olirum.player.ui.viewmodel.MainPlayerViewModel
 
@@ -44,8 +45,16 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val isDarkMode by playerViewModel.isDarkMode.collectAsState()
-            OlirumPlayTheme(darkTheme = isDarkMode) {
-                OlirumNavGraph(viewModel = playerViewModel)
+            var showSplash by remember { mutableStateOf(true) }
+
+            OlirumPlayTheme(darkTheme = if (showSplash) true else isDarkMode) {
+                Crossfade(targetState = showSplash, label = "SplashTransition") { isSplash ->
+                    if (isSplash) {
+                        SplashScreen(onSplashFinished = { showSplash = false })
+                    } else {
+                        OlirumNavGraph(viewModel = playerViewModel)
+                    }
+                }
             }
         }
     }

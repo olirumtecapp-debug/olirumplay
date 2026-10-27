@@ -37,15 +37,15 @@ jobs:
       - name: Prepare APK Files
         run: |
           mkdir -p release-apk
-          cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.1.0.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.2.0.apk
           cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay.apk
-          cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.1.0.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.2.0.apk
           cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OlirumPlay-APK-v1.1.0
+          name: OlirumPlay-APK-v1.2.0
           path: release-apk/*
           retention-days: 30
 
@@ -53,18 +53,18 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
         with:
-          tag_name: v1.1.0
-          name: "OlirumPlay v1.1.0 (Pastas, Playlists, Modo Escuro & Zero Quebra de Linha)"
+          tag_name: v1.2.0
+          name: "OlirumPlay v1.2.0 (Logo Oficial, Tela de Abertura & Assinatura Permanente)"
           body: |
-            ### 🎵 OlirumPlay v1.1.0 — Nova Versão Aprimorada
+            ### 🎵 OlirumPlay v1.2.0 — Versão com Assinatura Permanente & Identidade Visual
 
-            **Novas Funcionalidades e Correções:**
-            - **Navegação por Pastas (Pastinhas do Celular):** Nova aba que agrupa músicas por diretório físico (Download, WhatsApp, Álbuns, etc.). Toque em uma pasta e reproduza **apenas a sequência daquela pasta**!
-            - **Criação e Gestão de Playlists:** Crie novas playlists com nome personalizado e adicione qualquer música (local ou online) com 1 toque no botão '+'.
-            - **Modo Escuro (Dark Mode):** Alternância instantânea entre Modo Claro Premium e Modo Escuro Cyber com botão no topo e no menu, persistindo sua preferência.
-            - **Zero Quebra de Linha:** Redesenho completo do menu inferior com 5 abas compactas (Início, Músicas, Explorar, Letras, Biblioteca), campos de busca de linha única e rótulos sem quebras de texto indesejadas.
-            - **Botão Início Corrigido:** Navegação 100% responsiva para voltar à tela inicial a qualquer momento sem travamentos.
-            - **Catálogo Online:** Busca por gêneros musicais e artistas originais.
+            **Novas Melhorias e Correções:**
+            - **Assinatura Criptográfica Permanente (`olirumplay.keystore`):** Todas as compilações agora utilizam uma chave de assinatura exclusiva e fixa. Nunca mais ocorrerá erro de "Conflito com o app anterior" nas próximas atualizações!
+            - **Tela de Abertura Oficial (Splash Screen):** Exibição do logotipo oficial neon do OlirumPlay com animação suave de entrada e lema "MÚSICA EM ALTA FIDELIDADE".
+            - **Ícone do Aplicativo Oficial:** Substituição dos ícones padrão do Android pelo logotipo neon oficial do OlirumPlay em todas as resoluções (mipmap-mdpi até xxxhdpi).
+            - **Logo Oficial no Topo:** A barra superior de todas as telas agora exibe o logotipo da marca em vez de ícones genéricos.
+            - **Navegação por Pastas e Playlists:** Mantida a navegação seletiva por pastas locais e criação de playlists.
+            - **Modo Claro e Escuro:** Alternância de tema com 1 toque.
           files: |
-            release-apk/OlirumPlay-v1.1.0.apk
+            release-apk/OlirumPlay-v1.2.0.apk
             release-apk/OlirumPlay.apk
