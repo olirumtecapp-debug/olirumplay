@@ -195,7 +195,7 @@ fun RadioStationCard(
                         text = station.bitrate,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
-                        color = OlirumTeal,
+                        color = OlirumMint,
                         maxLines = 1,
                         softWrap = false
                     )
