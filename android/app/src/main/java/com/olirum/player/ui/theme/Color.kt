@@ -6,10 +6,12 @@ import androidx.compose.ui.graphics.Color
 // Paleta Oficial Premium Light OlirumPlay
 val OlirumWhite = Color(0xFFFFFFFF)
 val OlirumSurfaceLight = Color(0xFFF6F8FC)
+val OlirumBackgroundLight = Color(0xFFF6F8FC)
 val OlirumCardLight = Color(0xFFFFFFFF)
 val OlirumTextPrimary = Color(0xFF19212E)
 val OlirumTextSecondary = Color(0xFF697586)
 val OlirumDivider = Color(0xFFE5E9F2)
+val OlirumBorderLight = Color(0xFFE5E9F2)
 
 // Degradê da Marca OlirumPlay (Equalizador Musical)
 val OlirumMint = Color(0xFF10DDB5)
