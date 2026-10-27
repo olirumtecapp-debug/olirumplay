@@ -17,9 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.olirum.player.model.LyricLine
 import com.olirum.player.ui.components.OlirumTopBar
 import com.olirum.player.ui.theme.*
 import com.olirum.player.ui.viewmodel.MainPlayerViewModel
@@ -28,14 +28,15 @@ import com.olirum.player.ui.viewmodel.MainPlayerViewModel
 fun LyricsScreen(
     viewModel: MainPlayerViewModel
 ) {
+    val colors = LocalOlirumColors.current
     val currentTrack by viewModel.currentTrack.collectAsState()
     val lyrics by viewModel.lyrics.collectAsState()
     val isLyricsLoading by viewModel.isLyricsLoading.collectAsState()
     val currentPositionMs by viewModel.currentPositionMs.collectAsState()
+    val isDarkMode by viewModel.isDarkMode.collectAsState()
 
     val listState = rememberLazyListState()
 
-    // Encontra o índice da linha de letra ativa com base no tempo atual
     val activeIndex = remember(lyrics, currentPositionMs) {
         if (lyrics.isEmpty()) -1
         else {
@@ -44,7 +45,6 @@ fun LyricsScreen(
         }
     }
 
-    // Auto-scroll suave para manter a linha ativa centralizada
     LaunchedEffect(activeIndex) {
         if (activeIndex in lyrics.indices) {
             val scrollTarget = (activeIndex - 2).coerceAtLeast(0)
@@ -57,20 +57,22 @@ fun LyricsScreen(
             OlirumTopBar(
                 title = "Letras em Tempo Real",
                 subtitle = currentTrack?.let { "${it.title} • ${it.artist}" } ?: "Nenhuma música tocando",
+                onToggleTheme = { viewModel.toggleDarkMode() },
+                isDarkTheme = isDarkMode,
                 actions = {
                     currentTrack?.let { trk ->
                         IconButton(onClick = { viewModel.loadLyrics(trk) }) {
                             Icon(
                                 imageVector = Icons.Default.Refresh,
                                 contentDescription = "Recarregar Letra",
-                                tint = OlirumTextPrimary
+                                tint = colors.textPrimary
                             )
                         }
                     }
                 }
             )
         },
-        containerColor = OlirumBackgroundLight
+        containerColor = colors.background
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -86,14 +88,16 @@ fun LyricsScreen(
                         Icon(
                             imageVector = Icons.Default.Mic,
                             contentDescription = null,
-                            tint = OlirumTextSecondary.copy(alpha = 0.4f),
-                            modifier = Modifier.size(64.dp)
+                            tint = colors.textSecondary.copy(alpha = 0.4f),
+                            modifier = Modifier.size(56.dp)
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(14.dp))
                         Text(
                             text = "Inicie uma música para acompanhar a letra",
                             fontSize = 15.sp,
-                            color = OlirumTextSecondary
+                            color = colors.textSecondary,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -105,7 +109,13 @@ fun LyricsScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator(color = OlirumCyan)
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text("Buscando letra sincronizada...", color = OlirumTextSecondary, fontSize = 13.sp)
+                        Text(
+                            text = "Buscando letra sincronizada...",
+                            color = colors.textSecondary,
+                            fontSize = 13.sp,
+                            maxLines = 1,
+                            softWrap = false
+                        )
                     }
                 }
             } else if (lyrics.isEmpty()) {
@@ -120,13 +130,15 @@ fun LyricsScreen(
                             text = "Letra não encontrada para esta faixa",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = OlirumTextPrimary
+                            color = colors.textPrimary,
+                            maxLines = 1,
+                            softWrap = false
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "O serviço LRCLIB busca sincronizações automáticas para títulos e artistas correspondentes.",
+                            text = "O serviço LRCLIB busca sincronizações automáticas por título e artista correspondentes.",
                             fontSize = 13.sp,
-                            color = OlirumTextSecondary,
+                            color = colors.textSecondary,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(16.dp))
@@ -134,7 +146,7 @@ fun LyricsScreen(
                             onClick = { currentTrack?.let { viewModel.loadLyrics(it) } },
                             colors = ButtonDefaults.buttonColors(containerColor = OlirumBlue)
                         ) {
-                            Text("Tentar Novamente")
+                            Text("Tentar Novamente", maxLines = 1, softWrap = false)
                         }
                     }
                 }
@@ -142,7 +154,7 @@ fun LyricsScreen(
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 32.dp)
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 24.dp)
                 ) {
                     itemsIndexed(lyrics) { index, line ->
                         val isActive = index == activeIndex
@@ -152,21 +164,21 @@ fun LyricsScreen(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(
-                                    if (isActive) OlirumCyan.copy(alpha = 0.12f)
+                                    if (isActive) OlirumCyan.copy(alpha = 0.15f)
                                     else androidx.compose.ui.graphics.Color.Transparent
                                 )
                                 .clickable {
                                     viewModel.seekTo(line.timeMs)
                                 }
-                                .padding(vertical = 12.dp, horizontal = 12.dp),
+                                .padding(vertical = 10.dp, horizontal = 12.dp),
                             contentAlignment = Alignment.CenterStart
                         ) {
                             Text(
                                 text = line.text,
-                                fontSize = if (isActive) 20.sp else 16.sp,
+                                fontSize = if (isActive) 19.sp else 15.sp,
                                 fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isActive) OlirumBlue else OlirumTextSecondary.copy(alpha = 0.7f),
-                                lineHeight = 28.sp
+                                color = if (isActive) OlirumBlue else colors.textSecondary.copy(alpha = 0.75f),
+                                lineHeight = 26.sp
                             )
                         }
                     }

@@ -8,6 +8,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
 import com.olirum.player.ui.navigation.OlirumNavGraph
 import com.olirum.player.ui.theme.OlirumPlayTheme
@@ -41,7 +43,8 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            OlirumPlayTheme {
+            val isDarkMode by playerViewModel.isDarkMode.collectAsState()
+            OlirumPlayTheme(darkTheme = isDarkMode) {
                 OlirumNavGraph(viewModel = playerViewModel)
             }
         }

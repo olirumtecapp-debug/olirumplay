@@ -8,11 +8,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.filled.PlaylistAdd
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,13 +34,16 @@ fun TrackListItem(
     isPlaying: Boolean,
     onTrackClick: () -> Unit,
     onFavoriteClick: () -> Unit,
+    onAddToPlaylistClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    val colors = LocalOlirumColors.current
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(if (isPlaying) OlirumCyan.copy(alpha = 0.08f) else Color.Transparent)
+            .background(if (isPlaying) OlirumCyan.copy(alpha = 0.12f) else Color.Transparent)
             .clickable(onClick = onTrackClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -48,9 +51,9 @@ fun TrackListItem(
         // Capa do Álbum
         Box(
             modifier = Modifier
-                .size(48.dp)
+                .size(46.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(OlirumSurfaceLight),
+                .background(colors.card),
             contentAlignment = Alignment.Center
         ) {
             if (!track.artworkUri.isNullOrEmpty()) {
@@ -76,7 +79,7 @@ fun TrackListItem(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.35f)),
+                        .background(Color.Black.copy(alpha = 0.40f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -91,7 +94,7 @@ fun TrackListItem(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Título e Artista
+        // Título e Artista (Zero quebra de linha)
         Column(
             modifier = Modifier.weight(1f)
         ) {
@@ -99,18 +102,35 @@ fun TrackListItem(
                 text = track.title,
                 fontSize = 15.sp,
                 fontWeight = if (isPlaying) FontWeight.Bold else FontWeight.Medium,
-                color = if (isPlaying) OlirumBlue else OlirumTextPrimary,
+                color = if (isPlaying) OlirumBlue else colors.textPrimary,
                 maxLines = 1,
+                softWrap = false,
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = "${track.artist} • ${formatDuration(track.durationMs)}",
-                fontSize = 13.sp,
-                color = OlirumTextSecondary,
+                fontSize = 12.sp,
+                color = colors.textSecondary,
                 maxLines = 1,
+                softWrap = false,
                 overflow = TextOverflow.Ellipsis
             )
+        }
+
+        // Adicionar à Playlist (se disponível)
+        if (onAddToPlaylistClick != null) {
+            IconButton(
+                onClick = onAddToPlaylistClick,
+                modifier = Modifier.size(34.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlaylistAdd,
+                    contentDescription = "Adicionar à Playlist",
+                    tint = colors.textSecondary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
 
         // Botão Favorito
@@ -121,7 +141,7 @@ fun TrackListItem(
             Icon(
                 imageVector = if (track.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                 contentDescription = "Favoritar",
-                tint = if (track.isFavorite) OlirumMagenta else OlirumTextSecondary.copy(alpha = 0.5f),
+                tint = if (track.isFavorite) OlirumMagenta else colors.textSecondary.copy(alpha = 0.5f),
                 modifier = Modifier.size(20.dp)
             )
         }

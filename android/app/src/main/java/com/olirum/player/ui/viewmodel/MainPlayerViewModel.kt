@@ -12,6 +12,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.olirum.player.data.local.PlaylistEntity
 import com.olirum.player.data.repository.MusicRepository
 import com.olirum.player.data.repository.UserPreferencesRepository
 import com.olirum.player.model.LyricLine
@@ -23,7 +24,7 @@ import kotlinx.coroutines.launch
 
 class MainPlayerViewModel(
     private val context: Context,
-    private val musicRepository: MusicRepository,
+    val musicRepository: MusicRepository,
     private val prefsRepository: UserPreferencesRepository
 ) : ViewModel() {
 
@@ -56,6 +57,12 @@ class MainPlayerViewModel(
 
     private val _repeatMode = MutableStateFlow(Player.REPEAT_MODE_OFF)
     val repeatMode: StateFlow<Int> = _repeatMode.asStateFlow()
+
+    val isDarkMode: StateFlow<Boolean> = prefsRepository.isDarkMode
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val playlists: StateFlow<List<PlaylistEntity>> = musicRepository.playlists
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         initMediaController()
@@ -197,9 +204,33 @@ class MainPlayerViewModel(
         viewModelScope.launch { prefsRepository.saveRepeatMode(next) }
     }
 
+    fun toggleDarkMode() {
+        viewModelScope.launch {
+            prefsRepository.saveDarkMode(!isDarkMode.value)
+        }
+    }
+
     fun toggleFavorite(track: Track) {
         viewModelScope.launch {
             musicRepository.toggleFavorite(track)
+        }
+    }
+
+    fun createPlaylist(name: String) {
+        viewModelScope.launch {
+            musicRepository.createPlaylist(name)
+        }
+    }
+
+    fun deletePlaylist(playlistId: String) {
+        viewModelScope.launch {
+            musicRepository.deletePlaylist(playlistId)
+        }
+    }
+
+    fun addTrackToPlaylist(playlistId: String, track: Track) {
+        viewModelScope.launch {
+            musicRepository.addTrackToPlaylist(playlistId, track)
         }
     }
 

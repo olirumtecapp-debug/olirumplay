@@ -39,6 +39,7 @@ fun MiniPlayer(
     modifier: Modifier = Modifier
 ) {
     if (currentTrack == null) return
+    val colors = LocalOlirumColors.current
 
     Surface(
         modifier = modifier
@@ -47,8 +48,8 @@ fun MiniPlayer(
             .shadow(8.dp, RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick),
-        color = OlirumWhite,
-        tonalElevation = 4.dp
+        color = colors.surface,
+        tonalElevation = 6.dp
     ) {
         Column {
             // Linha de progresso com degradê vibrante do OlirumPlay
@@ -56,7 +57,7 @@ fun MiniPlayer(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(3.dp)
-                    .background(OlirumSurfaceLight)
+                    .background(colors.border)
             ) {
                 Box(
                     modifier = Modifier
@@ -77,7 +78,7 @@ fun MiniPlayer(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(OlirumSurfaceLight),
+                        .background(colors.card),
                     contentAlignment = Alignment.Center
                 ) {
                     if (!currentTrack.artworkUri.isNullOrEmpty()) {
@@ -102,7 +103,7 @@ fun MiniPlayer(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // Título e Artista
+                // Título e Artista (Zero quebra de linha)
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
@@ -110,15 +111,17 @@ fun MiniPlayer(
                         text = currentTrack.title,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = OlirumTextPrimary,
+                        color = colors.textPrimary,
                         maxLines = 1,
+                        softWrap = false,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = currentTrack.artist,
                         fontSize = 12.sp,
-                        color = OlirumTextSecondary,
+                        color = colors.textSecondary,
                         maxLines = 1,
+                        softWrap = false,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
@@ -150,7 +153,7 @@ fun MiniPlayer(
                     Icon(
                         imageVector = Icons.Default.SkipNext,
                         contentDescription = "Avançar",
-                        tint = OlirumTextPrimary,
+                        tint = colors.textPrimary,
                         modifier = Modifier.size(24.dp)
                     )
                 }

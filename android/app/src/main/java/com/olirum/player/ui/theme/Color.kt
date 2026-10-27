@@ -13,6 +13,14 @@ val OlirumTextSecondary = Color(0xFF697586)
 val OlirumDivider = Color(0xFFE5E9F2)
 val OlirumBorderLight = Color(0xFFE5E9F2)
 
+// Paleta Oficial Premium Dark OlirumPlay
+val OlirumBackgroundDark = Color(0xFF0B101B)
+val OlirumSurfaceDark = Color(0xFF121826)
+val OlirumCardDark = Color(0xFF182032)
+val OlirumTextPrimaryDark = Color(0xFFF8FAFC)
+val OlirumTextSecondaryDark = Color(0xFF94A3B8)
+val OlirumBorderDark = Color(0xFF1E293B)
+
 // Degradê da Marca OlirumPlay (Equalizador Musical)
 val OlirumMint = Color(0xFF10DDB5)
 val OlirumCyan = Color(0xFF08CFF0)

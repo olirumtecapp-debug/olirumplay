@@ -10,10 +10,19 @@ data class Track(
     val artworkUri: String? = null,
     val source: String = "local", // "local", "audius", "offline"
     val fileSize: Long = 0L,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val folderPath: String = "",
+    val folderName: String = "Músicas"
 )
 
 data class LyricLine(
     val timeMs: Long,
     val text: String
+)
+
+data class MusicFolder(
+    val path: String,
+    val name: String,
+    val trackCount: Int,
+    val tracks: List<Track>
 )

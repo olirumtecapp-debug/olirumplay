@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -24,11 +25,11 @@ import com.olirum.player.ui.viewmodel.MainPlayerViewModel
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
     object Home : Screen("home", "Início", Icons.Default.Home)
-    object Device : Screen("device", "Dispositivo", Icons.Default.PhoneAndroid)
+    object Device : Screen("device", "Músicas", Icons.Default.FolderOpen)
     object Explore : Screen("explore", "Explorar", Icons.Default.Explore)
     object Lyrics : Screen("lyrics", "Letras", Icons.Default.Mic)
-    object Library : Screen("library", "Favoritas", Icons.Default.Favorite)
-    object Widgets : Screen("widgets", "Widgets", Icons.Default.Widgets)
+    object Library : Screen("library", "Biblioteca", Icons.Default.Favorite)
+    object Widgets : Screen("widgets", "Ajustes", Icons.Default.GraphicEq)
 }
 
 @Composable
@@ -36,6 +37,7 @@ fun OlirumNavGraph(
     viewModel: MainPlayerViewModel,
     modifier: Modifier = Modifier
 ) {
+    val colors = LocalOlirumColors.current
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -47,13 +49,13 @@ fun OlirumNavGraph(
 
     var showFullPlayer by remember { mutableStateOf(false) }
 
+    // 5 abas principais compactas que NUNCA quebram linha em nenhuma tela de celular
     val bottomNavItems = listOf(
         Screen.Home,
         Screen.Device,
         Screen.Explore,
         Screen.Lyrics,
-        Screen.Library,
-        Screen.Widgets
+        Screen.Library
     )
 
     val progressFraction = remember(currentPositionMs, durationMs) {
@@ -64,7 +66,7 @@ fun OlirumNavGraph(
         Scaffold(
             bottomBar = {
                 NavigationBar(
-                    containerColor = OlirumWhite,
+                    containerColor = colors.surface,
                     tonalElevation = 8.dp
                 ) {
                     bottomNavItems.forEach { screen ->
@@ -72,12 +74,14 @@ fun OlirumNavGraph(
                         NavigationBarItem(
                             selected = isSelected,
                             onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                                if (currentRoute != screen.route) {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = false
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = false
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
                             },
                             icon = {
@@ -89,16 +93,20 @@ fun OlirumNavGraph(
                             label = {
                                 Text(
                                     text = screen.title,
-                                    fontSize = 11.sp
+                                    fontSize = 11.sp,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = OlirumBlue,
                                 selectedTextColor = OlirumBlue,
                                 indicatorColor = OlirumCyan.copy(alpha = 0.2f),
-                                unselectedIconColor = OlirumTextSecondary,
-                                unselectedTextColor = OlirumTextSecondary
-                            )
+                                unselectedIconColor = colors.textSecondary,
+                                unselectedTextColor = colors.textSecondary
+                            ),
+                            alwaysShowLabel = true
                         )
                     }
                 }
@@ -119,7 +127,8 @@ fun OlirumNavGraph(
                             viewModel = viewModel,
                             onNavigateToDevice = { navController.navigate(Screen.Device.route) },
                             onNavigateToExplore = { navController.navigate(Screen.Explore.route) },
-                            onNavigateToLibrary = { navController.navigate(Screen.Library.route) }
+                            onNavigateToLibrary = { navController.navigate(Screen.Library.route) },
+                            onNavigateToWidgets = { navController.navigate(Screen.Widgets.route) }
                         )
                     }
                     composable(Screen.Device.route) {
@@ -135,7 +144,7 @@ fun OlirumNavGraph(
                         LibraryScreen(viewModel = viewModel)
                     }
                     composable(Screen.Widgets.route) {
-                        WidgetsScreen()
+                        WidgetsScreen(viewModel = viewModel)
                     }
                 }
 

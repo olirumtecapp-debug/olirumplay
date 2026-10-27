@@ -34,6 +34,7 @@ fun FullPlayerScreen(
     onDismiss: () -> Unit,
     onNavigateToLyrics: () -> Unit
 ) {
+    val colors = LocalOlirumColors.current
     val currentTrack by viewModel.currentTrack.collectAsState()
     val isPlaying by viewModel.isPlaying.collectAsState()
     val currentPositionMs by viewModel.currentPositionMs.collectAsState()
@@ -58,14 +59,14 @@ fun FullPlayerScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = OlirumWhite
+        color = colors.background
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
                 .navigationBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
+                .padding(horizontal = 24.dp, vertical = 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
@@ -79,24 +80,30 @@ fun FullPlayerScreen(
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = "Fechar",
-                        tint = OlirumTextPrimary,
+                        tint = colors.textPrimary,
                         modifier = Modifier.size(32.dp)
                     )
                 }
 
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
+                ) {
                     Text(
                         text = "TOCANDO AGORA",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = OlirumBlue,
-                        letterSpacing = 1.sp
+                        letterSpacing = 1.sp,
+                        maxLines = 1,
+                        softWrap = false
                     )
                     Text(
                         text = track.album,
                         fontSize = 13.sp,
-                        color = OlirumTextSecondary,
+                        color = colors.textSecondary,
                         maxLines = 1,
+                        softWrap = false,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
@@ -114,10 +121,10 @@ fun FullPlayerScreen(
             // Capa Grande Centralizada
             Box(
                 modifier = Modifier
-                    .size(290.dp)
+                    .size(280.dp)
                     .shadow(16.dp, RoundedCornerShape(24.dp))
                     .clip(RoundedCornerShape(24.dp))
-                    .background(OlirumSurfaceLight),
+                    .background(colors.card),
                 contentAlignment = Alignment.Center
             ) {
                 if (!track.artworkUri.isNullOrEmpty()) {
@@ -135,12 +142,12 @@ fun FullPlayerScreen(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
                         tint = OlirumBlue,
-                        modifier = Modifier.size(96.dp)
+                        modifier = Modifier.size(90.dp)
                     )
                 }
             }
 
-            // Título, Artista e Botão Favorito
+            // Título, Artista e Botão Favorito (Zero quebra de linha)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -149,18 +156,20 @@ fun FullPlayerScreen(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = track.title,
-                        fontSize = 20.sp,
+                        fontSize = 19.sp,
                         fontWeight = FontWeight.Bold,
-                        color = OlirumTextPrimary,
+                        color = colors.textPrimary,
                         maxLines = 1,
+                        softWrap = false,
                         overflow = TextOverflow.Ellipsis
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = track.artist,
-                        fontSize = 15.sp,
-                        color = OlirumTextSecondary,
+                        fontSize = 14.sp,
+                        color = colors.textSecondary,
                         maxLines = 1,
+                        softWrap = false,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
@@ -169,8 +178,8 @@ fun FullPlayerScreen(
                     Icon(
                         imageVector = if (track.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Favoritar",
-                        tint = if (track.isFavorite) OlirumMagenta else OlirumTextSecondary,
-                        modifier = Modifier.size(28.dp)
+                        tint = if (track.isFavorite) OlirumMagenta else colors.textSecondary,
+                        modifier = Modifier.size(26.dp)
                     )
                 }
             }
@@ -191,7 +200,7 @@ fun FullPlayerScreen(
                     colors = SliderDefaults.colors(
                         thumbColor = OlirumBlue,
                         activeTrackColor = OlirumCyan,
-                        inactiveTrackColor = OlirumBorderLight
+                        inactiveTrackColor = colors.border
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -204,12 +213,16 @@ fun FullPlayerScreen(
                     Text(
                         text = formatDuration(currentDisplayMs),
                         fontSize = 12.sp,
-                        color = OlirumTextSecondary
+                        color = colors.textSecondary,
+                        maxLines = 1,
+                        softWrap = false
                     )
                     Text(
                         text = formatDuration(durationMs),
                         fontSize = 12.sp,
-                        color = OlirumTextSecondary
+                        color = colors.textSecondary,
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
             }
@@ -225,7 +238,7 @@ fun FullPlayerScreen(
                     Icon(
                         imageVector = Icons.Default.Shuffle,
                         contentDescription = "Aleatório",
-                        tint = if (isShuffle) OlirumBlue else OlirumTextSecondary,
+                        tint = if (isShuffle) OlirumBlue else colors.textSecondary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -235,15 +248,15 @@ fun FullPlayerScreen(
                     Icon(
                         imageVector = Icons.Default.SkipPrevious,
                         contentDescription = "Anterior",
-                        tint = OlirumTextPrimary,
-                        modifier = Modifier.size(36.dp)
+                        tint = colors.textPrimary,
+                        modifier = Modifier.size(34.dp)
                     )
                 }
 
                 // Play / Pause (Botão Grande com Degradê Olirum)
                 Box(
                     modifier = Modifier
-                        .size(68.dp)
+                        .size(66.dp)
                         .clip(CircleShape)
                         .background(OlirumGradientBrush)
                         .clickable { viewModel.togglePlayPause() },
@@ -253,7 +266,7 @@ fun FullPlayerScreen(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = if (isPlaying) "Pausar" else "Tocar",
                         tint = Color.White,
-                        modifier = Modifier.size(34.dp)
+                        modifier = Modifier.size(32.dp)
                     )
                 }
 
@@ -262,15 +275,15 @@ fun FullPlayerScreen(
                     Icon(
                         imageVector = Icons.Default.SkipNext,
                         contentDescription = "Próxima",
-                        tint = OlirumTextPrimary,
-                        modifier = Modifier.size(36.dp)
+                        tint = colors.textPrimary,
+                        modifier = Modifier.size(34.dp)
                     )
                 }
 
                 // Repetir
                 IconButton(onClick = { viewModel.toggleRepeat() }) {
                     val repeatIcon = if (repeatMode == Player.REPEAT_MODE_ONE) Icons.Default.RepeatOne else Icons.Default.Repeat
-                    val repeatTint = if (repeatMode != Player.REPEAT_MODE_OFF) OlirumBlue else OlirumTextSecondary
+                    val repeatTint = if (repeatMode != Player.REPEAT_MODE_OFF) OlirumBlue else colors.textSecondary
                     Icon(
                         imageVector = repeatIcon,
                         contentDescription = "Repetir",
@@ -285,11 +298,11 @@ fun FullPlayerScreen(
                 onClick = onNavigateToLyrics,
                 shape = RoundedCornerShape(20.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = OlirumBlue),
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 6.dp)
             ) {
                 Icon(Icons.Default.Lyrics, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Acompanhar Letra Sincronizada", fontSize = 13.sp)
+                Text("Acompanhar Letra Sincronizada", fontSize = 13.sp, maxLines = 1, softWrap = false)
             }
         }
     }

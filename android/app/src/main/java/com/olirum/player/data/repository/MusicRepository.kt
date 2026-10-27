@@ -1,16 +1,21 @@
 package com.olirum.player.data.repository
 
 import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.olirum.player.data.local.AppDatabase
 import com.olirum.player.data.local.MediaStoreScanner
+import com.olirum.player.data.local.PlaylistEntity
 import com.olirum.player.data.local.TrackEntity
 import com.olirum.player.data.remote.ApiClient
 import com.olirum.player.model.LyricLine
+import com.olirum.player.model.MusicFolder
 import com.olirum.player.model.Track
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.util.UUID
 import java.util.regex.Pattern
 
 class MusicRepository(
@@ -18,28 +23,93 @@ class MusicRepository(
     private val database: AppDatabase,
     private val scanner: MediaStoreScanner
 ) {
+    private val gson = Gson()
+
     val favoriteTracks: Flow<List<Track>> = database.trackDao().getFavoriteTracks()
         .map { list -> list.map { it.toTrack() } }
 
     val offlineTracks: Flow<List<Track>> = database.trackDao().getOfflineTracks()
         .map { list -> list.map { it.toTrack() } }
 
+    val playlists: Flow<List<PlaylistEntity>> = database.trackDao().getAllPlaylists()
+
     suspend fun scanLocalTracks(): List<Track> = scanner.scanLocalTracks()
+
+    fun groupTracksByFolder(tracks: List<Track>): List<MusicFolder> = scanner.groupTracksByFolder(tracks)
 
     suspend fun toggleFavorite(track: Track) {
         val newFav = !track.isFavorite
         database.trackDao().insertTrack(TrackEntity.fromTrack(track.copy(isFavorite = newFav)))
     }
 
-    suspend fun searchOnlineCatalog(query: String): List<Track> = withContext(Dispatchers.IO) {
+    suspend fun createPlaylist(name: String): PlaylistEntity = withContext(Dispatchers.IO) {
+        val playlist = PlaylistEntity(
+            id = UUID.randomUUID().toString(),
+            name = name.trim().ifEmpty { "Minha Playlist" },
+            trackIdsJson = "[]",
+            createdAt = System.currentTimeMillis()
+        )
+        database.trackDao().insertPlaylist(playlist)
+        playlist
+    }
+
+    suspend fun deletePlaylist(playlistId: String) = withContext(Dispatchers.IO) {
+        database.trackDao().deletePlaylist(playlistId)
+    }
+
+    suspend fun addTrackToPlaylist(playlistId: String, track: Track) = withContext(Dispatchers.IO) {
+        // Save track to Room first so it can be resolved later
+        database.trackDao().insertTrack(TrackEntity.fromTrack(track))
+        val playlist = database.trackDao().getPlaylistById(playlistId) ?: return@withContext
+        val listType = object : TypeToken<MutableList<String>>() {}.type
+        val currentIds: MutableList<String> = try {
+            gson.fromJson(playlist.trackIdsJson, listType) ?: mutableListOf()
+        } catch (_: Exception) {
+            mutableListOf()
+        }
+        if (!currentIds.contains(track.id)) {
+            currentIds.add(track.id)
+            val updated = playlist.copy(trackIdsJson = gson.toJson(currentIds))
+            database.trackDao().insertPlaylist(updated)
+        }
+    }
+
+    suspend fun removeTrackFromPlaylist(playlistId: String, trackId: String) = withContext(Dispatchers.IO) {
+        val playlist = database.trackDao().getPlaylistById(playlistId) ?: return@withContext
+        val listType = object : TypeToken<MutableList<String>>() {}.type
+        val currentIds: MutableList<String> = try {
+            gson.fromJson(playlist.trackIdsJson, listType) ?: mutableListOf()
+        } catch (_: Exception) {
+            mutableListOf()
+        }
+        if (currentIds.remove(trackId)) {
+            val updated = playlist.copy(trackIdsJson = gson.toJson(currentIds))
+            database.trackDao().insertPlaylist(updated)
+        }
+    }
+
+    fun getTrackIdsFromPlaylist(playlist: PlaylistEntity): List<String> {
+        val listType = object : TypeToken<List<String>>() {}.type
+        return try {
+            gson.fromJson(playlist.trackIdsJson, listType) ?: emptyList()
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun searchOnlineCatalog(query: String, genre: String? = null): List<Track> = withContext(Dispatchers.IO) {
         try {
-            val response = ApiClient.audiusApi.searchTracks(query)
+            val response = if (genre != null && query.isBlank()) {
+                ApiClient.audiusApi.getTrending(genre = genre)
+            } else {
+                ApiClient.audiusApi.searchTracks(query)
+            }
             response.data?.map { dto ->
                 Track(
                     id = "audius-${dto.id}",
                     title = dto.title,
                     artist = dto.user?.name ?: "Artista Audius",
-                    album = dto.user?.handle?.let { "@$it" } ?: "Audius Online",
+                    album = dto.genre ?: dto.user?.handle?.let { "@$it" } ?: "Audius Original",
                     durationMs = (dto.duration ?: 180) * 1000L,
                     mediaUri = "https://discoveryprovider.audius.co/v1/tracks/${dto.id}/stream?app_name=OlirumPlay",
                     artworkUri = dto.artwork?.art1000 ?: dto.artwork?.art480 ?: dto.artwork?.art150,
@@ -52,15 +122,15 @@ class MusicRepository(
         }
     }
 
-    suspend fun getTrendingOnline(): List<Track> = withContext(Dispatchers.IO) {
+    suspend fun getTrendingOnline(genre: String? = null): List<Track> = withContext(Dispatchers.IO) {
         try {
-            val response = ApiClient.audiusApi.getTrending()
+            val response = ApiClient.audiusApi.getTrending(genre = genre)
             response.data?.map { dto ->
                 Track(
                     id = "audius-${dto.id}",
                     title = dto.title,
                     artist = dto.user?.name ?: "Artista Audius",
-                    album = dto.user?.handle?.let { "@$it" } ?: "Audius Trending",
+                    album = dto.genre ?: dto.user?.handle?.let { "@$it" } ?: "Audius Original",
                     durationMs = (dto.duration ?: 180) * 1000L,
                     mediaUri = "https://discoveryprovider.audius.co/v1/tracks/${dto.id}/stream?app_name=OlirumPlay",
                     artworkUri = dto.artwork?.art1000 ?: dto.artwork?.art480 ?: dto.artwork?.art150,

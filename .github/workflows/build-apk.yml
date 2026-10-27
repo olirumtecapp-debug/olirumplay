@@ -37,14 +37,15 @@ jobs:
       - name: Prepare APK Files
         run: |
           mkdir -p release-apk
-          cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.0.0.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.1.0.apk
           cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.1.0.apk
           cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OlirumPlay-APK
+          name: OlirumPlay-APK-v1.1.0
           path: release-apk/*
           retention-days: 30
 
@@ -52,19 +53,18 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
         with:
-          tag_name: v1.0.0
-          name: "OlirumPlay v1.0.0 (Native Android Jetpack Compose)"
+          tag_name: v1.1.0
+          name: "OlirumPlay v1.1.0 (Pastas, Playlists, Modo Escuro & Zero Quebra de Linha)"
           body: |
-            ### 🎵 OlirumPlay v1.0.0 — Aplicativo de Música Premium Nativo
+            ### 🎵 OlirumPlay v1.1.0 — Nova Versão Aprimorada
 
-            **Arquitetura 100% Android Nativo:**
-            - **Linguagem & UI:** Kotlin + Jetpack Compose + Material 3 (Design Claro Premium).
-            - **Reprodução Indestrutível:** AndroidX Media3 ExoPlayer + `MediaSessionService` para reprodução contínua em segundo plano, tela bloqueada e barra de notificações.
-            - **Escaneamento do Smartphone:** Leitor automático de músicas locais via `MediaStore.Audio.Media.EXTERNAL_CONTENT_URI` (MP3, FLAC, WAV, AAC, M4A).
-            - **Catálogo Online Gratuito:** Integração oficial com a API Audius (streaming de tendências mundiais e busca por gêneros).
-            - **Letras Sincronizadas (Karaokê):** Integração com LRCLIB API com rolagem e destaque da linha ativa em tempo real.
-            - **Persistência de Dados:** Banco de dados Room (`AppDatabase`) para favoritos e DataStore Preferences para última posição e estado de reprodução.
-            - **Widgets:** Suporte nativo a Widgets de Tela Inicial Android (4x1 & 4x2) e equalizador de 5 frequências.
+            **Novas Funcionalidades e Correções:**
+            - **Navegação por Pastas (Pastinhas do Celular):** Nova aba que agrupa músicas por diretório físico (Download, WhatsApp, Álbuns, etc.). Toque em uma pasta e reproduza **apenas a sequência daquela pasta**!
+            - **Criação e Gestão de Playlists:** Crie novas playlists com nome personalizado e adicione qualquer música (local ou online) com 1 toque no botão '+'.
+            - **Modo Escuro (Dark Mode):** Alternância instantânea entre Modo Claro Premium e Modo Escuro Cyber com botão no topo e no menu, persistindo sua preferência.
+            - **Zero Quebra de Linha:** Redesenho completo do menu inferior com 5 abas compactas (Início, Músicas, Explorar, Letras, Biblioteca), campos de busca de linha única e rótulos sem quebras de texto indesejadas.
+            - **Botão Início Corrigido:** Navegação 100% responsiva para voltar à tela inicial a qualquer momento sem travamentos.
+            - **Catálogo Online:** Busca por gêneros musicais e artistas originais.
           files: |
-            release-apk/OlirumPlay-v1.0.0.apk
+            release-apk/OlirumPlay-v1.1.0.apk
             release-apk/OlirumPlay.apk

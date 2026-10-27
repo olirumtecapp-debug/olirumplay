@@ -1,11 +1,12 @@
 package com.olirum.player.ui.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -13,11 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.olirum.player.R
 import com.olirum.player.ui.theme.*
 
 @Composable
@@ -25,18 +25,22 @@ fun OlirumTopBar(
     title: String = "OlirumPlay",
     subtitle: String? = null,
     onSearchClick: (() -> Unit)? = null,
+    onToggleTheme: (() -> Unit)? = null,
+    isDarkTheme: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
+    val colors = LocalOlirumColors.current
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = OlirumWhite,
+        color = colors.surface,
         shadowElevation = 1.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -64,15 +68,21 @@ fun OlirumTopBar(
                 Column {
                     Text(
                         text = title,
-                        fontSize = 19.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = OlirumTextPrimary
+                        color = colors.textPrimary,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis
                     )
                     if (subtitle != null) {
                         Text(
                             text = subtitle,
                             fontSize = 12.sp,
-                            color = OlirumTextSecondary
+                            color = colors.textSecondary,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -84,10 +94,21 @@ fun OlirumTopBar(
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = "Buscar",
-                            tint = OlirumTextPrimary
+                            tint = colors.textPrimary
                         )
                     }
                 }
+
+                if (onToggleTheme != null) {
+                    IconButton(onClick = onToggleTheme) {
+                        Icon(
+                            imageVector = if (isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = if (isDarkTheme) "Modo Claro" else "Modo Escuro",
+                            tint = if (isDarkTheme) OlirumCyan else colors.textPrimary
+                        )
+                    }
+                }
+
                 actions()
             }
         }

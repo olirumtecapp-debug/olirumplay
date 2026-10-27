@@ -19,6 +19,7 @@ class UserPreferencesRepository(private val context: Context) {
         val SHUFFLE_ENABLED = booleanPreferencesKey("shuffle_enabled")
         val REPEAT_MODE = intPreferencesKey("repeat_mode")
         val LAST_SCAN_TIMESTAMP = longPreferencesKey("last_scan_timestamp")
+        val DARK_MODE_ENABLED = booleanPreferencesKey("dark_mode_enabled")
     }
 
     val lastTrackId: Flow<String?> = context.dataStore.data
@@ -45,6 +46,12 @@ class UserPreferencesRepository(private val context: Context) {
         }
         .map { it[PreferencesKeys.REPEAT_MODE] ?: 0 }
 
+    val isDarkMode: Flow<Boolean> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { it[PreferencesKeys.DARK_MODE_ENABLED] ?: false }
+
     suspend fun savePlaybackState(trackId: String, positionMs: Long) {
         try {
             context.dataStore.edit { preferences ->
@@ -66,6 +73,14 @@ class UserPreferencesRepository(private val context: Context) {
         try {
             context.dataStore.edit { preferences ->
                 preferences[PreferencesKeys.REPEAT_MODE] = mode
+            }
+        } catch (_: Exception) {}
+    }
+
+    suspend fun saveDarkMode(enabled: Boolean) {
+        try {
+            context.dataStore.edit { preferences ->
+                preferences[PreferencesKeys.DARK_MODE_ENABLED] = enabled
             }
         } catch (_: Exception) {}
     }

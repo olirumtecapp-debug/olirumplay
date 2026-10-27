@@ -4,9 +4,11 @@ import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
+import com.olirum.player.model.MusicFolder
 import com.olirum.player.model.Track
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class MediaStoreScanner(private val context: Context) {
 
@@ -21,7 +23,8 @@ class MediaStoreScanner(private val context: Context) {
             MediaStore.Audio.Media.ALBUM,
             MediaStore.Audio.Media.DURATION,
             MediaStore.Audio.Media.SIZE,
-            MediaStore.Audio.Media.ALBUM_ID
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.DATA
         )
 
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DURATION} >= 15000"
@@ -36,6 +39,7 @@ class MediaStoreScanner(private val context: Context) {
                 val durCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
                 val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
                 val albumIdCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+                val dataCol = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
 
                 while (cursor.moveToNext()) {
                     val id = cursor.getLong(idCol)
@@ -45,6 +49,11 @@ class MediaStoreScanner(private val context: Context) {
                     val durationMs = cursor.getLong(durCol)
                     val size = cursor.getLong(sizeCol)
                     val albumId = cursor.getLong(albumIdCol)
+
+                    val filePath = if (dataCol != -1) cursor.getString(dataCol) ?: "" else ""
+                    val parentFile = if (filePath.isNotEmpty()) File(filePath).parentFile else null
+                    val folderPath = parentFile?.absolutePath ?: "Dispositivo"
+                    val folderName = parentFile?.name ?: "Músicas"
 
                     val contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id).toString()
                     val artworkUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId).toString()
@@ -59,7 +68,9 @@ class MediaStoreScanner(private val context: Context) {
                             mediaUri = contentUri,
                             artworkUri = artworkUri,
                             source = "local",
-                            fileSize = size
+                            fileSize = size,
+                            folderPath = folderPath,
+                            folderName = folderName
                         )
                     )
                 }
@@ -69,5 +80,18 @@ class MediaStoreScanner(private val context: Context) {
         }
 
         trackList
+    }
+
+    fun groupTracksByFolder(tracks: List<Track>): List<MusicFolder> {
+        return tracks.groupBy { it.folderPath }
+            .map { (path, folderTracks) ->
+                MusicFolder(
+                    path = path,
+                    name = folderTracks.firstOrNull()?.folderName ?: "Pasta",
+                    trackCount = folderTracks.size,
+                    tracks = folderTracks.sortedBy { it.title }
+                )
+            }
+            .sortedBy { it.name.lowercase() }
     }
 }
