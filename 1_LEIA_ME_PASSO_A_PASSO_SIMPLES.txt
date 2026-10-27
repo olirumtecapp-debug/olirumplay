@@ -1,0 +1,34 @@
+========================================================================
+PASSO A PASSO SIMPLES PARA INICIANTES (DO ZERO AO APK)
+========================================================================
+
+Você baixou o pacote único com TODO o projeto MukaFlow Pro!
+
+PASSO 1: EXTRAIR O ARQUIVO ZIP
+------------------------------
+1. Clique com o botão direito no arquivo "MukaFlow-Pro-Tudo-Incluso-v2.zip" que você baixou.
+2. Clique em "Extrair Tudo..." (ou "Extrair Aqui").
+3. Vai aparecer uma pasta chamada "mukaflow-pro".
+
+PASSO 2: ABRIR NO ANTIGRAVITY
+-----------------------------
+1. Abra o programa Antigravity.
+2. Clique em "File" (Arquivo) -> "Open Folder" (Abrir Pasta).
+3. Selecione a pasta "mukaflow-pro" que você acabou de extrair.
+
+PASSO 3: COPIAR E COLAR O COMANDO PARA A INTELIGÊNCIA DO ANTIGRAVITY
+--------------------------------------------------------------------
+Copie todo o texto abaixo (entre as linhas tracejadas) e cole no chat do Antigravity. Ele fará todo o trabalho técnico sozinho para você!
+
+------------------------------------------------------------------------
+Olá! Sou iniciante e estou trazendo o projeto completo do MukaFlow Pro que já está nesta pasta.
+
+Todos os arquivos já estão prontos aqui na pasta (src/App.jsx, package.json, capacitor.config.json e .github/workflows/build-apk.yml).
+
+Por favor, faça tudo automaticamente para mim seguindo esta ordem:
+1. Rode o comando `npm install` e depois `npm run dev` no terminal para eu ver o aplicativo funcionando na tela.
+2. Configure o Capacitor Android (`npx cap add android` e `npx cap sync android`) e adicione as permissões de leitura de músicas locais do arquivo `android-config/AndroidManifest.permissions.xml` dentro do `AndroidManifest.xml` do Android.
+3. Me ajude a enviar este projeto para o meu GitHub para que o arquivo `.github/workflows/build-apk.yml` gere o meu arquivo .APK pronto para instalar no celular.
+
+Pode começar pelo passo 1 executando os comandos no terminal para mim, por favor!
+------------------------------------------------------------------------

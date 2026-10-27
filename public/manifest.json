@@ -1,0 +1,22 @@
+{
+  "name": "OlirumPlay Neon Music Player",
+  "short_name": "OlirumPlay",
+  "description": "Player Híbrido de Música com Catálogo Gratuito, Reprodução Local, Letras Sincronizadas, Capas HD e Equalizador Neon",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060b14",
+  "theme_color": "#00f5d4",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

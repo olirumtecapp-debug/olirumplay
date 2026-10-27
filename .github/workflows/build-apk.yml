@@ -1,0 +1,85 @@
+name: Build OlirumPlay APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Native Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Web Assets (Vite)
+        run: npm run build
+
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
+      - name: Make Gradle Wrapper Executable
+        run: chmod +x android/gradlew
+
+      - name: Build APK with Gradle
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Prepare APK Files
+        run: |
+          mkdir -p release-apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.0.0.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OlirumPlay-APK
+          path: release-apk/*
+          retention-days: 30
+
+      - name: Create GitHub Release with APK
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
+        with:
+          tag_name: v1.0.0
+          name: "OlirumPlay v1.0.0 (Cyber Neon Hybrid Music Player)"
+          body: |
+            ### 🎧 OlirumPlay v1.0.0 - APK Oficial Pronto para Instalar
+
+            - **Catálogo de Streaming Gratuito (Audius API):** músicas completas em 320 kbps.
+            - **Músicas Locais:** leitor com tags ID3v2 e extração de capas embutidas.
+            - **Letras Sincronizadas (LRCLIB):** estilo karaokê em tempo real com rolagem automática.
+            - **Capas em Ultra HD:** buscador e downloader em 1000x1000 px.
+            - **Persistência Indestrutível:** segundo plano no Android com `FOREGROUND_SERVICE` e `WAKE_LOCK`.
+            - **Equalizador 5 Bandas & Sleep Timer.**
+
+            Baixe o arquivo **`OlirumPlay.apk`** abaixo e instale diretamente no seu aparelho Android!
+          files: |
+            release-apk/OlirumPlay-v1.0.0.apk
+            release-apk/OlirumPlay.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

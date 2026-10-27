@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OlirumPlay</string>
+    <string name="title_activity_main">OlirumPlay</string>
+    <string name="package_name">com.olirum.player</string>
+    <string name="custom_url_scheme">com.olirum.player</string>
+</resources>

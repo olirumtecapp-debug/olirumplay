@@ -1,0 +1,13 @@
+{
+  "appId": "com.olirum.player",
+  "appName": "OlirumPlay",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "allowNavigation": ["*"]
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
