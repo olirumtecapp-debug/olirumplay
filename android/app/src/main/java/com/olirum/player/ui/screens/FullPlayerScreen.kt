@@ -184,46 +184,76 @@ fun FullPlayerScreen(
                 }
             }
 
-            // Seekbar com tempo decorrido e restante
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Slider(
-                    value = progress,
-                    onValueChange = {
-                        isDraggingSlider = true
-                        sliderPosition = it
-                    },
-                    onValueChangeFinished = {
-                        val seekTarget = (sliderPosition * durationMs).toLong()
-                        viewModel.seekTo(seekTarget)
-                        isDraggingSlider = false
-                    },
-                    colors = SliderDefaults.colors(
-                        thumbColor = OlirumBlue,
-                        activeTrackColor = OlirumCyan,
-                        inactiveTrackColor = colors.border
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+            val isRadio = track.source == "radio"
 
+            // Seekbar ou Indicador AO VIVO
+            if (isRadio) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xFFE53935).copy(alpha = 0.15f))
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val currentDisplayMs = if (isDraggingSlider) (sliderPosition * durationMs).toLong() else currentPositionMs
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFE53935))
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = formatDuration(currentDisplayMs),
+                        text = "TRANSMISSÃO AO VIVO • ÁUDIO CONTÍNUO",
+                        color = Color(0xFFE53935),
                         fontSize = 12.sp,
-                        color = colors.textSecondary,
+                        fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         softWrap = false
                     )
-                    Text(
-                        text = formatDuration(durationMs),
-                        fontSize = 12.sp,
-                        color = colors.textSecondary,
-                        maxLines = 1,
-                        softWrap = false
+                }
+            } else {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Slider(
+                        value = progress,
+                        onValueChange = {
+                            isDraggingSlider = true
+                            sliderPosition = it
+                        },
+                        onValueChangeFinished = {
+                            val seekTarget = (sliderPosition * durationMs).toLong()
+                            viewModel.seekTo(seekTarget)
+                            isDraggingSlider = false
+                        },
+                        colors = SliderDefaults.colors(
+                            thumbColor = OlirumBlue,
+                            activeTrackColor = OlirumCyan,
+                            inactiveTrackColor = colors.border
+                        ),
+                        modifier = Modifier.fillMaxWidth()
                     )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        val currentDisplayMs = if (isDraggingSlider) (sliderPosition * durationMs).toLong() else currentPositionMs
+                        Text(
+                            text = formatDuration(currentDisplayMs),
+                            fontSize = 12.sp,
+                            color = colors.textSecondary,
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                        Text(
+                            text = formatDuration(durationMs),
+                            fontSize = 12.sp,
+                            color = colors.textSecondary,
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
                 }
             }
 

@@ -3,6 +3,7 @@ package com.olirum.player
 import android.app.Application
 import com.olirum.player.data.local.AppDatabase
 import com.olirum.player.data.local.MediaStoreScanner
+import com.olirum.player.data.remote.RadioRepository
 import com.olirum.player.data.repository.MusicRepository
 import com.olirum.player.data.repository.UserPreferencesRepository
 
@@ -12,6 +13,9 @@ class OlirumApplication : Application() {
         private set
 
     lateinit var musicRepository: MusicRepository
+        private set
+
+    lateinit var radioRepository: RadioRepository
         private set
 
     lateinit var preferencesRepository: UserPreferencesRepository
@@ -24,6 +28,7 @@ class OlirumApplication : Application() {
         database = AppDatabase.getDatabase(this)
         val scanner = MediaStoreScanner(this)
 
+        radioRepository = RadioRepository()
         preferencesRepository = UserPreferencesRepository(this)
         musicRepository = MusicRepository(
             context = this,

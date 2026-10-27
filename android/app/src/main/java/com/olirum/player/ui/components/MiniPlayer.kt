@@ -41,6 +41,8 @@ fun MiniPlayer(
     if (currentTrack == null) return
     val colors = LocalOlirumColors.current
 
+    val isRadio = currentTrack.source == "radio"
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -52,7 +54,7 @@ fun MiniPlayer(
         tonalElevation = 6.dp
     ) {
         Column {
-            // Linha de progresso com degradê vibrante do OlirumPlay
+            // Linha de progresso ou indicador Ao Vivo
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -61,7 +63,7 @@ fun MiniPlayer(
             ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(fraction = progressFraction.coerceIn(0f, 1f))
+                        .fillMaxWidth(fraction = if (isRadio) 1f else progressFraction.coerceIn(0f, 1f))
                         .fillMaxHeight()
                         .background(OlirumGradientBrush)
                 )

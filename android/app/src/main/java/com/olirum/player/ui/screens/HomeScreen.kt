@@ -2,9 +2,11 @@ package com.olirum.player.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -21,8 +23,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.olirum.player.OlirumApplication
+import com.olirum.player.model.RadioStation
 import com.olirum.player.model.Track
 import com.olirum.player.ui.components.OlirumTopBar
+import com.olirum.player.ui.components.RadioStationCard
 import com.olirum.player.ui.components.TrackListItem
 import com.olirum.player.ui.theme.*
 import com.olirum.player.ui.viewmodel.MainPlayerViewModel
@@ -42,6 +46,10 @@ fun HomeScreen(
 
     var trendingTracks by remember { mutableStateOf<List<Track>>(emptyList()) }
     var isLoadingTrending by remember { mutableStateOf(false) }
+
+    val featuredRadios = remember {
+        OlirumApplication.instance.radioRepository.curatedStations.take(6)
+    }
 
     LaunchedEffect(Unit) {
         if (trendingTracks.isEmpty()) {
@@ -118,9 +126,9 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f)
                     )
                     QuickActionCard(
-                        title = "Tendências",
-                        subtitle = "Catálogo Online",
-                        icon = Icons.Default.TrendingUp,
+                        title = "Rádios & Músicas",
+                        subtitle = "Ao Vivo & Online",
+                        icon = Icons.Default.Radio,
                         gradient = Brush.linearGradient(listOf(OlirumBlue, OlirumPurple)),
                         onClick = onNavigateToExplore,
                         modifier = Modifier.weight(1f)
@@ -188,7 +196,7 @@ fun HomeScreen(
                 }
             }
 
-            // Seção Tendências Online
+            // Seção: Rádios ao Vivo em Destaque
             item {
                 Spacer(modifier = Modifier.height(20.dp))
                 Row(
@@ -198,8 +206,55 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "📻 Rádios ao Vivo",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colors.textPrimary,
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
+                    TextButton(onClick = onNavigateToExplore) {
+                        Text(
+                            text = "Ver Mais Rádios",
+                            color = OlirumBlue,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
+                }
+            }
+
+            // Lista de Rádios em Destaque (Católica, Rock Clássico, Clássica, Sertanejo, etc.)
+            items(featuredRadios, key = { it.id }) { station ->
+                val isThisPlaying = isPlaying && currentTrack?.id == station.id
+                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                    RadioStationCard(
+                        station = station,
+                        isPlaying = isThisPlaying,
+                        onPlayClick = {
+                            val track = station.toTrack()
+                            viewModel.playTrack(track, listOf(track))
+                        }
+                    )
+                }
+            }
+
+            // Seção Tendências Online
+            item {
+                Spacer(modifier = Modifier.height(18.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = "Destaques Online",
+                        text = "🎵 Faixas do Catálogo Online",
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
                         color = colors.textPrimary,
@@ -208,7 +263,7 @@ fun HomeScreen(
                     )
                     TextButton(onClick = onNavigateToExplore) {
                         Text(
-                            text = "Ver Mais",
+                            text = "Ver Catálogo",
                             color = OlirumBlue,
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
@@ -230,7 +285,7 @@ fun HomeScreen(
                     }
                 }
             } else {
-                items(trendingTracks.take(8)) { track ->
+                items(trendingTracks.take(6)) { track ->
                     val isThisPlaying = isPlaying && currentTrack?.id == track.id
                     TrackListItem(
                         track = track,

@@ -37,15 +37,15 @@ jobs:
       - name: Prepare APK Files
         run: |
           mkdir -p release-apk
-          cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.2.0.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.3.0.apk
           cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay.apk
-          cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.2.0.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.3.0.apk
           cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OlirumPlay-APK-v1.2.0
+          name: OlirumPlay-APK-v1.3.0
           path: release-apk/*
           retention-days: 30
 
@@ -53,18 +53,30 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
         with:
-          tag_name: v1.2.0
-          name: "OlirumPlay v1.2.0 (Logo Oficial, Tela de Abertura & Assinatura Permanente)"
+          tag_name: v1.3.0
+          name: "OlirumPlay v1.3.0 (Rádios Online ao Vivo Multigêneros & Identidade Oficial)"
           body: |
-            ### 🎵 OlirumPlay v1.2.0 — Versão com Assinatura Permanente & Identidade Visual
+            ### 📻 OlirumPlay v1.3.0 — Rádios Online Multigêneros, Splash Screen & Assinatura Permanente
 
-            **Novas Melhorias e Correções:**
-            - **Assinatura Criptográfica Permanente (`olirumplay.keystore`):** Todas as compilações agora utilizam uma chave de assinatura exclusiva e fixa. Nunca mais ocorrerá erro de "Conflito com o app anterior" nas próximas atualizações!
-            - **Tela de Abertura Oficial (Splash Screen):** Exibição do logotipo oficial neon do OlirumPlay com animação suave de entrada e lema "MÚSICA EM ALTA FIDELIDADE".
-            - **Ícone do Aplicativo Oficial:** Substituição dos ícones padrão do Android pelo logotipo neon oficial do OlirumPlay em todas as resoluções (mipmap-mdpi até xxxhdpi).
-            - **Logo Oficial no Topo:** A barra superior de todas as telas agora exibe o logotipo da marca em vez de ícones genéricos.
-            - **Navegação por Pastas e Playlists:** Mantida a navegação seletiva por pastas locais e criação de playlists.
-            - **Modo Claro e Escuro:** Alternância de tema com 1 toque.
+            **Novas Funcionalidades e Correções:**
+            - 📻 **Rádios Online ao Vivo com Múltiplos Gêneros Gratuitos:**
+              - **✝️ Música Católica:** Rádio Evangelizar (Pe. Reginaldo Manzotti), Rádio Aparecida 104.3 FM, Rádio Canção Nova FM, Rádio Evangelizar Família, Rádio Católica Web.
+              - **🎸 Rock Clássico:** 89 FM A Rádio Rock, Virgin Radio Classic Rock, Virgin Rock Anos 70, Virgin Rock Anos 80, 1.FM Classic Rock Replay.
+              - **🎻 Música Clássica:** Classic FM (Reino Unido), Radio Swiss Classic (Suíça), YourClassical Relax, WALM Classical 2 HD.
+              - **🤠 Sertanejo & Modão:** Sertaneja 106.7 FM (modão, raiz e universitário).
+              - **🌴 MPB & Bossa Nova:** Bossa Jazz Brasil (Tom Jobim, Elis, Chico), Antena 1 Brasil.
+              - **📻 Flashback Anos 70, 80 e 90:** Rádio Saudade 99.7 FM, Beatles 4 Ever Rádio.
+              - **🎷 Jazz & Blues:** 101 Smooth Jazz (instrumental refinado).
+              - **⚡ Eletrônica & Dance:** Dance Wave! (House, EDM e pistas).
+              - **🪗 Forró Tradicional:** Rádio Forró Brasil (pé de serra, xote e baião).
+              - **🇯🇲 Reggae:** La Grosse Radio Reggae (Roots Reggae & Dub).
+              - **🕊️ Gospel & Adoração:** Melodia FM 97.5 (louvores e adoração).
+              - 🌐 **Busca Livre Mundial:** Pesquisa conectada ao diretório Radio Browser com +30.000 estações do mundo todo.
+            - 🔴 **Modo Ao Vivo no Player:** Identificação automática de streaming ao vivo com badge `AO VIVO` pulsante.
+            - 🏠 **Destaques na Tela Inicial:** Acesso imediato às principais rádios com 1 toque.
+            - 🎨 **Logo Oficial & Tela de Abertura (Splash Screen):** Animação com degradê neon equalizador e lema "MÚSICA EM ALTA FIDELIDADE".
+            - 🔑 **Assinatura Permanente (Keystore):** Todas as versões agora utilizam `olirumplay.keystore`, garantindo atualização sem perda nem erro de assinatura.
+            - 🔤 **Zero Quebra de Linha:** Interface refinada e sem quebras indesejadas em nenhuma resolução.
           files: |
-            release-apk/OlirumPlay-v1.2.0.apk
+            release-apk/OlirumPlay-v1.3.0.apk
             release-apk/OlirumPlay.apk
