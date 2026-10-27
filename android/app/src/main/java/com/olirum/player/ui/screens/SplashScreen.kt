@@ -26,17 +26,20 @@ import kotlinx.coroutines.delay
 fun SplashScreen(
     onSplashFinished: () -> Unit
 ) {
-    val scale = remember { Animatable(0.82f) }
-    val alpha = remember { Animatable(0f) }
+    val iconScale = remember { Animatable(0.75f) }
+    val logoAlpha = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
-        alpha.animateTo(
+        iconScale.animateTo(
             targetValue = 1f,
-            animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing)
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
         )
-        scale.animateTo(
+        logoAlpha.animateTo(
             targetValue = 1f,
-            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+            animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
         )
         delay(900)
         onSplashFinished()
@@ -45,47 +48,58 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF090D16)),
+            .background(Color(0xFF070B12)),
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .scale(scale.value)
-                .alpha(alpha.value)
-                .padding(24.dp)
+            modifier = Modifier.padding(24.dp)
         ) {
-            // Imagem Oficial do Logo com Identidade Neon
+            // Ícone Oficial Neon de Áudio com Play
             Image(
-                painter = painterResource(id = R.drawable.olirum_splash_banner),
-                contentDescription = "OlirumPlay",
+                painter = painterResource(id = R.drawable.olirum_icon_play),
+                contentDescription = "Ícone OlirumPlay",
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
-                    .fillMaxWidth(0.85f)
-                    .height(220.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .size(130.dp)
+                    .scale(iconScale.value)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Logotipo Oficial Horizontal 3D
+            Image(
+                painter = painterResource(id = R.drawable.olirum_logo_3d),
+                contentDescription = "OlirumPlay 3D",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .fillMaxWidth(0.78f)
+                    .height(68.dp)
+                    .alpha(logoAlpha.value)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Linha de degradê equalizador neon
+            // Linha equalizadora com degradê neon
             Box(
                 modifier = Modifier
-                    .width(180.dp)
-                    .height(4.dp)
+                    .width(160.dp)
+                    .height(3.dp)
                     .clip(RoundedCornerShape(2.dp))
                     .background(OlirumGradientBrush)
+                    .alpha(logoAlpha.value)
             )
 
             Spacer(modifier = Modifier.height(14.dp))
 
             Text(
                 text = "MÚSICA EM ALTA FIDELIDADE",
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White.copy(alpha = 0.85f),
-                letterSpacing = 2.sp
+                letterSpacing = 2.sp,
+                modifier = Modifier.alpha(logoAlpha.value)
             )
         }
     }

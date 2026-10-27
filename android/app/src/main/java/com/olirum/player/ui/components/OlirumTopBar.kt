@@ -50,7 +50,7 @@ fun OlirumTopBar(
                 modifier = Modifier.weight(1f)
             ) {
                 Image(
-                    painter = androidx.compose.ui.res.painterResource(id = com.olirum.player.R.drawable.olirum_logo_icon),
+                    painter = androidx.compose.ui.res.painterResource(id = com.olirum.player.R.drawable.olirum_icon_play),
                     contentDescription = "Logo OlirumPlay",
                     modifier = Modifier
                         .size(36.dp)
