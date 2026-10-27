@@ -1,4 +1,4 @@
-name: Build OlirumPlay APK
+name: Build OlirumPlay Native APK
 
 on:
   push:
@@ -24,20 +24,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Web Assets (Vite)
-        run: npm run build
-
-      - name: Sync Capacitor Android
-        run: npx cap sync android
+          cache: 'gradle'
 
       - name: Make Gradle Wrapper Executable
         run: chmod +x android/gradlew
@@ -66,20 +53,18 @@ jobs:
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
         with:
           tag_name: v1.0.0
-          name: "OlirumPlay v1.0.0 (Cyber Neon Hybrid Music Player)"
+          name: "OlirumPlay v1.0.0 (Native Android Jetpack Compose)"
           body: |
-            ### 🎧 OlirumPlay v1.0.0 - APK Oficial Pronto para Instalar
+            ### 🎵 OlirumPlay v1.0.0 — Aplicativo de Música Premium Nativo
 
-            - **Catálogo de Streaming Gratuito (Audius API):** músicas completas em 320 kbps.
-            - **Músicas Locais:** leitor com tags ID3v2 e extração de capas embutidas.
-            - **Letras Sincronizadas (LRCLIB):** estilo karaokê em tempo real com rolagem automática.
-            - **Capas em Ultra HD:** buscador e downloader em 1000x1000 px.
-            - **Persistência Indestrutível:** segundo plano no Android com `FOREGROUND_SERVICE` e `WAKE_LOCK`.
-            - **Equalizador 5 Bandas & Sleep Timer.**
-
-            Baixe o arquivo **`OlirumPlay.apk`** abaixo e instale diretamente no seu aparelho Android!
+            **Arquitetura 100% Android Nativo:**
+            - **Linguagem & UI:** Kotlin + Jetpack Compose + Material 3 (Design Claro Premium).
+            - **Reprodução Indestrutível:** AndroidX Media3 ExoPlayer + `MediaSessionService` para reprodução contínua em segundo plano, tela bloqueada e barra de notificações.
+            - **Escaneamento do Smartphone:** Leitor automático de músicas locais via `MediaStore.Audio.Media.EXTERNAL_CONTENT_URI` (MP3, FLAC, WAV, AAC, M4A).
+            - **Catálogo Online Gratuito:** Integração oficial com a API Audius (streaming de tendências mundiais e busca por gêneros).
+            - **Letras Sincronizadas (Karaokê):** Integração com LRCLIB API com rolagem e destaque da linha ativa em tempo real.
+            - **Persistência de Dados:** Banco de dados Room (`AppDatabase`) para favoritos e DataStore Preferences para última posição e estado de reprodução.
+            - **Widgets:** Suporte nativo a Widgets de Tela Inicial Android (4x1 & 4x2) e equalizador de 5 frequências.
           files: |
             release-apk/OlirumPlay-v1.0.0.apk
             release-apk/OlirumPlay.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

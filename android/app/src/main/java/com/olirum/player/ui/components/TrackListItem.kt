@@ -1,0 +1,136 @@
+package com.olirum.player.ui.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Equalizer
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.olirum.player.model.Track
+import com.olirum.player.ui.theme.*
+
+@Composable
+fun TrackListItem(
+    track: Track,
+    isPlaying: Boolean,
+    onTrackClick: () -> Unit,
+    onFavoriteClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (isPlaying) OlirumCyan.copy(alpha = 0.08f) else Color.Transparent)
+            .clickable(onClick = onTrackClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Capa do Álbum
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(OlirumSurfaceLight),
+            contentAlignment = Alignment.Center
+        ) {
+            if (!track.artworkUri.isNullOrEmpty()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(track.artworkUri)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = track.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.MusicNote,
+                    contentDescription = null,
+                    tint = OlirumBlue,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            if (isPlaying) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.35f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Equalizer,
+                        contentDescription = "Tocando",
+                        tint = OlirumCyan,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // Título e Artista
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = track.title,
+                fontSize = 15.sp,
+                fontWeight = if (isPlaying) FontWeight.Bold else FontWeight.Medium,
+                color = if (isPlaying) OlirumBlue else OlirumTextPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "${track.artist} • ${formatDuration(track.durationMs)}",
+                fontSize = 13.sp,
+                color = OlirumTextSecondary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        // Botão Favorito
+        IconButton(
+            onClick = onFavoriteClick,
+            modifier = Modifier.size(36.dp)
+        ) {
+            Icon(
+                imageVector = if (track.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                contentDescription = "Favoritar",
+                tint = if (track.isFavorite) OlirumMagenta else OlirumTextSecondary.copy(alpha = 0.5f),
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+fun formatDuration(durationMs: Long): String {
+    val totalSeconds = (durationMs / 1000).coerceAtLeast(0)
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return String.format("%02d:%02d", minutes, seconds)
+}
