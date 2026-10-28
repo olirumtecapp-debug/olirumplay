@@ -8,6 +8,9 @@ interface TrackDao {
     @Query("SELECT * FROM saved_tracks WHERE isFavorite = 1 ORDER BY savedAt DESC")
     fun getFavoriteTracks(): Flow<List<TrackEntity>>
 
+    @Query("SELECT * FROM saved_tracks WHERE isFavorite = 1")
+    suspend fun getFavoriteTracksList(): List<TrackEntity>
+
     @Query("SELECT * FROM saved_tracks WHERE source = 'offline' ORDER BY savedAt DESC")
     fun getOfflineTracks(): Flow<List<TrackEntity>>
 

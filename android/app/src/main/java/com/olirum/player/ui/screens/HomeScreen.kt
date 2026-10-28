@@ -157,10 +157,10 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f)
                         )
                         HomeQuickActionCard(
-                            title = "Videoclipes",
-                            subtitle = "YouTube Oficial",
-                            imageRes = com.olirum.player.R.drawable.shortcut_videoclipes,
-                            onClick = onNavigateToVideos,
+                            title = "Equalizador & Som",
+                            subtitle = "Graves & Efeitos 3D",
+                            imageRes = com.olirum.player.R.drawable.bg_folder_header,
+                            onClick = onNavigateToWidgets,
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -317,11 +317,17 @@ fun HomeScreen(
             items(featuredStations, key = { it.id }) { station ->
                 val isThisPlaying = isPlaying && currentTrack?.id == station.id
                 Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                    val allFavs by com.olirum.player.OlirumApplication.instance.musicRepository.favoriteTracks.collectAsState(initial = emptyList())
+                    val isFav = remember(allFavs, station.id) { allFavs.any { it.id == station.id } }
                     RadioStationCard(
                         station = station,
                         isPlaying = isThisPlaying,
+                        isFavorite = isFav,
                         onPlayClick = {
                             viewModel.playRadioStation(station)
+                        },
+                        onFavoriteClick = {
+                            viewModel.toggleFavorite(station.toTrack().copy(isFavorite = isFav))
                         }
                     )
                 }

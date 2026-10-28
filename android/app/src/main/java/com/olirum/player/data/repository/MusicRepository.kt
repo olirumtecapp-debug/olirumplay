@@ -21,7 +21,7 @@ import java.util.regex.Pattern
 
 class MusicRepository(
     private val context: Context,
-    private val database: AppDatabase,
+    val database: AppDatabase,
     private val scanner: MediaStoreScanner
 ) {
     private val gson = Gson()
@@ -37,8 +37,23 @@ class MusicRepository(
 
     suspend fun scanLocalTracks(): List<Track> = withContext(Dispatchers.IO) {
         val tracks = scanner.scanLocalTracks()
-        // Retorna as faixas locais e pode resolver artes em segundo plano
-        tracks
+        val favorites = try {
+            database.trackDao().getFavoriteTracksList().associateBy { it.id }
+        } catch (_: Exception) {
+            emptyMap()
+        }
+        if (favorites.isEmpty()) {
+            tracks
+        } else {
+            tracks.map { track ->
+                val favEntity = favorites[track.id]
+                if (favEntity != null && favEntity.isFavorite) {
+                    track.copy(isFavorite = true)
+                } else {
+                    track
+                }
+            }
+        }
     }
 
     suspend fun resolveCover(track: Track): String? = coverArtRepository.getCoverForTrack(track)

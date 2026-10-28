@@ -83,6 +83,14 @@ class MainPlayerViewModel(
                 mediaController?.addListener(object : Player.Listener {
                     override fun onIsPlayingChanged(playing: Boolean) {
                         _isPlaying.value = playing
+                        val current = _currentTrack.value
+                        com.olirum.player.OlirumPlayerWidget.updateAllWidgets(
+                            context,
+                            current?.title,
+                            current?.artist,
+                            playing,
+                            current?.artworkUri
+                        )
                     }
 
                     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -96,7 +104,21 @@ class MainPlayerViewModel(
                                 mediaUri = item.requestMetadata.mediaUri?.toString() ?: "",
                                 artworkUri = item.mediaMetadata.artworkUri?.toString()
                             )
+                            // Verifica se a faixa j? ? favorita no banco
+                            viewModelScope.launch {
+                                val saved = musicRepository.database.trackDao().getTrackById(track.id)
+                                if (saved != null && _currentTrack.value?.id == track.id) {
+                                    _currentTrack.value = _currentTrack.value?.copy(isFavorite = saved.isFavorite)
+                                }
+                            }
                             _currentTrack.value = track
+                            com.olirum.player.OlirumPlayerWidget.updateAllWidgets(
+                                context,
+                                track.title,
+                                track.artist,
+                                mediaController?.isPlaying ?: false,
+                                track.artworkUri
+                            )
                             if (track.source == "radio") {
                                 _durationMs.value = 0L
                                 _currentPositionMs.value = 0L
@@ -243,6 +265,10 @@ class MainPlayerViewModel(
     }
 
     fun toggleFavorite(track: Track) {
+        val newFav = !track.isFavorite
+        if (_currentTrack.value?.id == track.id) {
+            _currentTrack.value = _currentTrack.value?.copy(isFavorite = newFav)
+        }
         viewModelScope.launch {
             musicRepository.toggleFavorite(track)
         }

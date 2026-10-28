@@ -59,7 +59,6 @@ fun OlirumNavGraph(
         Screen.Home,
         Screen.Explore,
         Screen.Radios,
-        Screen.Videos,
         Screen.Library
     )
 
@@ -135,7 +134,6 @@ fun OlirumNavGraph(
                             onNavigateToRadios = { navController.navigate(Screen.Radios.route) },
                             onNavigateToLibrary = { navController.navigate(Screen.Library.route) },
                             onNavigateToWidgets = { navController.navigate(Screen.Widgets.route) },
-                            onNavigateToVideos = { navController.navigate(Screen.Videos.route) },
                             onCategoryClick = { cat ->
                                 navController.navigate("category/${cat.id}")
                             }
@@ -157,9 +155,7 @@ fun OlirumNavGraph(
                             }
                         )
                     }
-                    composable(Screen.Videos.route) {
-                        VideoclipesScreen(mainPlayerViewModel = viewModel)
-                    }
+
                     composable(Screen.Library.route) {
                         LibraryScreen(
                             viewModel = viewModel,

@@ -323,11 +323,17 @@ fun CategoryStationsScreen(
                 ) {
                     items(filteredStations, key = { it.id }) { station ->
                         val isThisPlaying = isPlaying && currentTrack?.id == station.id
+                        val allFavs by com.olirum.player.OlirumApplication.instance.musicRepository.favoriteTracks.collectAsState(initial = emptyList())
+                        val isFav = remember(allFavs, station.id) { allFavs.any { it.id == station.id } }
                         RadioStationCard(
                             station = station,
                             isPlaying = isThisPlaying,
+                            isFavorite = isFav,
                             onPlayClick = {
                                 viewModel.playRadioStation(station)
+                            },
+                            onFavoriteClick = {
+                                viewModel.toggleFavorite(station.toTrack().copy(isFavorite = isFav))
                             }
                         )
                     }

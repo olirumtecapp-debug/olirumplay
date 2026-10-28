@@ -252,7 +252,10 @@ fun DeviceLibraryScreen(
                             track = track,
                             isPlaying = isThisPlaying,
                             onTrackClick = { viewModel.playTrack(track, folder.tracks) },
-                            onFavoriteClick = { viewModel.toggleFavorite(track) },
+                            onFavoriteClick = {
+                                viewModel.toggleFavorite(track)
+                                localTracks = localTracks.map { if (it.id == track.id) it.copy(isFavorite = !track.isFavorite) else it }
+                            },
                             onAddToPlaylistClick = { trackToAddToPlaylist = track },
                             onChangeCoverClick = { trackToChangeCover = track }
                         )
@@ -489,7 +492,10 @@ fun DeviceLibraryScreen(
                                     track = track,
                                     isPlaying = isThisPlaying,
                                     onTrackClick = { viewModel.playTrack(track, filteredTracks) },
-                                    onFavoriteClick = { viewModel.toggleFavorite(track) },
+                                    onFavoriteClick = {
+                                viewModel.toggleFavorite(track)
+                                localTracks = localTracks.map { if (it.id == track.id) it.copy(isFavorite = !track.isFavorite) else it }
+                            },
                                     onAddToPlaylistClick = { trackToAddToPlaylist = track },
                                     onChangeCoverClick = { trackToChangeCover = track }
                                 )
