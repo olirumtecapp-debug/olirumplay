@@ -192,6 +192,13 @@ class MainPlayerViewModel(
         }
     }
 
+    fun pause() {
+        val controller = mediaController ?: return
+        if (controller.isPlaying) {
+            controller.pause()
+        }
+    }
+
     fun skipNext() {
         mediaController?.seekToNextMediaItem()
     }
