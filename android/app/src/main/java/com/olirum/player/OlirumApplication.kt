@@ -21,6 +21,9 @@ class OlirumApplication : Application() {
     lateinit var preferencesRepository: UserPreferencesRepository
         private set
 
+    lateinit var youtubeRepository: com.olirum.player.data.remote.youtube.YouTubeRepository
+        private set
+
     override fun onCreate() {
         super.onCreate()
         instance = this
@@ -30,6 +33,7 @@ class OlirumApplication : Application() {
 
         radioRepository = RadioRepository()
         preferencesRepository = UserPreferencesRepository(this)
+        youtubeRepository = com.olirum.player.data.remote.youtube.YouTubeRepository(preferencesRepository)
         musicRepository = MusicRepository(
             context = this,
             database = database,

@@ -30,6 +30,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object Home : Screen("home", "Início", Icons.Rounded.Home)
     object Explore : Screen("explore", "Explorar", Icons.Rounded.Explore)
     object Radios : Screen("radios", "Rádios", Icons.Rounded.Radio)
+    object Videos : Screen("videos", "Vídeos", Icons.Rounded.SmartDisplay)
     object Library : Screen("library", "Biblioteca", Icons.Rounded.LibraryMusic)
     object Device : Screen("device", "Músicas", Icons.Rounded.FolderOpen)
     object Lyrics : Screen("lyrics", "Letras", Icons.Rounded.Mic)
@@ -58,6 +59,7 @@ fun OlirumNavGraph(
         Screen.Home,
         Screen.Explore,
         Screen.Radios,
+        Screen.Videos,
         Screen.Library
     )
 
@@ -133,6 +135,7 @@ fun OlirumNavGraph(
                             onNavigateToRadios = { navController.navigate(Screen.Radios.route) },
                             onNavigateToLibrary = { navController.navigate(Screen.Library.route) },
                             onNavigateToWidgets = { navController.navigate(Screen.Widgets.route) },
+                            onNavigateToVideos = { navController.navigate(Screen.Videos.route) },
                             onCategoryClick = { cat ->
                                 navController.navigate("category/${cat.id}")
                             }
@@ -153,6 +156,9 @@ fun OlirumNavGraph(
                                 navController.navigate("category/${cat.id}")
                             }
                         )
+                    }
+                    composable(Screen.Videos.route) {
+                        VideoclipesScreen(mainPlayerViewModel = viewModel)
                     }
                     composable(Screen.Library.route) {
                         LibraryScreen(

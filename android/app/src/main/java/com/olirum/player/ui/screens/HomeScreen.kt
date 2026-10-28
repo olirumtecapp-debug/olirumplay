@@ -42,6 +42,7 @@ fun HomeScreen(
     onNavigateToRadios: () -> Unit,
     onNavigateToLibrary: () -> Unit,
     onNavigateToWidgets: () -> Unit,
+    onNavigateToVideos: () -> Unit = {},
     onCategoryClick: (RadioCategory) -> Unit
 ) {
     val colors = LocalOlirumColors.current
@@ -119,33 +120,50 @@ fun HomeScreen(
 
             // Ações Rápidas (3 Cards com Ilustrações 3D Oficiais)
             item {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    HomeQuickActionCard(
-                        title = "Músicas do Celular",
-                        subtitle = "Arquivos & Pastas",
-                        imageRes = com.olirum.player.R.drawable.shortcut_musicas_celular,
-                        onClick = onNavigateToDevice,
-                        modifier = Modifier.weight(1f)
-                    )
-                    HomeQuickActionCard(
-                        title = "Rádios ao Vivo",
-                        subtitle = "Radio Browser",
-                        imageRes = com.olirum.player.R.drawable.shortcut_radios_aovivo,
-                        onClick = onNavigateToRadios,
-                        modifier = Modifier.weight(1f)
-                    )
-                    HomeQuickActionCard(
-                        title = "Explorar Estilos",
-                        subtitle = "Todos os Gêneros",
-                        imageRes = com.olirum.player.R.drawable.shortcut_explorar_estilos,
-                        onClick = onNavigateToExplore,
-                        modifier = Modifier.weight(1f)
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        HomeQuickActionCard(
+                            title = "Músicas do Celular",
+                            subtitle = "Arquivos & Pastas",
+                            imageRes = com.olirum.player.R.drawable.shortcut_musicas_celular,
+                            onClick = onNavigateToDevice,
+                            modifier = Modifier.weight(1f)
+                        )
+                        HomeQuickActionCard(
+                            title = "Rádios ao Vivo",
+                            subtitle = "Radio Browser",
+                            imageRes = com.olirum.player.R.drawable.shortcut_radios_aovivo,
+                            onClick = onNavigateToRadios,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        HomeQuickActionCard(
+                            title = "Explorar Estilos",
+                            subtitle = "Todos os Gêneros",
+                            imageRes = com.olirum.player.R.drawable.shortcut_explorar_estilos,
+                            onClick = onNavigateToExplore,
+                            modifier = Modifier.weight(1f)
+                        )
+                        HomeQuickActionCard(
+                            title = "Videoclipes",
+                            subtitle = "YouTube Oficial",
+                            imageRes = com.olirum.player.R.drawable.shortcut_videoclipes,
+                            onClick = onNavigateToVideos,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
 

@@ -39,21 +39,21 @@ jobs:
           mkdir -p release-apk
           # Usar o APK de Release oficial assinado permanentemente com v1 e v2
           if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
-            cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay-v1.6.0.apk
+            cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay-v1.7.0.apk
             cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay.apk
-            cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay-v1.6.0.apk
+            cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay-v1.7.0.apk
             cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay.apk
           else
-            cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.6.0.apk
+            cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.7.0.apk
             cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay.apk
-            cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.6.0.apk
+            cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.7.0.apk
             cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay.apk
           fi
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OlirumPlay-APK-v1.6.0
+          name: OlirumPlay-APK-v1.7.0
           path: release-apk/*
           retention-days: 30
 
@@ -61,10 +61,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
         with:
-          tag_name: v1.6.0
-          name: "OlirumPlay v1.6.0 — Identidade Visual Completa & Filtro Anti-Colisão de Gêneros"
+          tag_name: v1.7.0
+          name: "OlirumPlay v1.7.0 — Identidade Visual Completa & Filtro Anti-Colisão de Gêneros"
           body: |
-            ### 🎧 OlirumPlay v1.6.0 — Identidade Visual Oficial & Melhorias de Gêneros
+            ### 🎧 OlirumPlay v1.7.0 — Identidade Visual Oficial & Melhorias de Gêneros
 
             **Principais Novidades e Correções:**
             - 🎨 **Identidade Visual 3D Completa (27 Obras Vetoriais Neon):**
@@ -81,6 +81,6 @@ jobs:
               - Botões de reprodução rápida e aleatória diretamente em cada card de pasta da biblioteca.
             - 🔑 **Assinatura Universal Permanente v1 + v2:** Atualização contínua sem erro de incompatibilidade.
           files: |
-            release-apk/OlirumPlay-v1.6.0.apk
+            release-apk/OlirumPlay-v1.7.0.apk
             release-apk/OlirumPlay.apk
           token: ${{ secrets.GITHUB_TOKEN }}

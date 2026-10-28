@@ -20,6 +20,7 @@ class UserPreferencesRepository(private val context: Context) {
         val REPEAT_MODE = intPreferencesKey("repeat_mode")
         val LAST_SCAN_TIMESTAMP = longPreferencesKey("last_scan_timestamp")
         val DARK_MODE_ENABLED = booleanPreferencesKey("dark_mode_enabled")
+        val YOUTUBE_API_KEY = stringPreferencesKey("youtube_api_key")
     }
 
     val lastTrackId: Flow<String?> = context.dataStore.data
@@ -51,6 +52,12 @@ class UserPreferencesRepository(private val context: Context) {
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { it[PreferencesKeys.DARK_MODE_ENABLED] ?: false }
+
+    val youtubeApiKey: Flow<String?> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { it[PreferencesKeys.YOUTUBE_API_KEY] }
 
     suspend fun savePlaybackState(trackId: String, positionMs: Long) {
         try {
@@ -89,6 +96,14 @@ class UserPreferencesRepository(private val context: Context) {
         try {
             context.dataStore.edit { preferences ->
                 preferences[PreferencesKeys.LAST_SCAN_TIMESTAMP] = timestamp
+            }
+        } catch (_: Exception) {}
+    }
+
+    suspend fun saveYouTubeApiKey(key: String) {
+        try {
+            context.dataStore.edit { preferences ->
+                preferences[PreferencesKeys.YOUTUBE_API_KEY] = key.trim()
             }
         } catch (_: Exception) {}
     }
