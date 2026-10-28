@@ -1,5 +1,6 @@
 package com.olirum.player.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,6 +18,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -132,71 +136,56 @@ private fun CategoryGridCard(
     category: RadioCategory,
     onClick: () -> Unit
 ) {
-    val gradientBrush = remember(category.gradientColors) {
-        val c1 = Color(category.gradientColors.getOrNull(0) ?: 0xFF00E5D4)
-        val c2 = Color(category.gradientColors.getOrNull(1) ?: 0xFF008BFF)
-        Brush.linearGradient(listOf(c1, c2))
-    }
-
-    val iconVector: ImageVector = when (category.iconName) {
-        "Church" -> Icons.Rounded.Favorite
-        "Piano" -> Icons.Rounded.GraphicEq
-        "Saxophone" -> Icons.Rounded.MusicNote
-        "Guitar" -> Icons.Rounded.Radio
-        "Heart" -> Icons.Rounded.Favorite
-        "Spa" -> Icons.Rounded.Spa
-        "Star" -> Icons.Rounded.Star
-        "Trophy" -> Icons.Rounded.EmojiEvents
-        "Album" -> Icons.Rounded.Album
-        "Equalizer" -> Icons.Rounded.Equalizer
-        else -> Icons.Rounded.Radio
+    val context = LocalContext.current
+    val imageRes = remember(category.drawableResName) {
+        if (category.drawableResName != null) {
+            val id = context.resources.getIdentifier(category.drawableResName, "drawable", context.packageName)
+            if (id != 0) id else null
+        } else null
     }
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(115.dp)
+            .height(130.dp)
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         shadowElevation = 3.dp
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(gradientBrush)
-                .padding(14.dp)
-        ) {
-            // Ícone de fundo sutil
-            Icon(
-                imageVector = iconVector,
-                contentDescription = null,
-                tint = Color.White.copy(alpha = 0.22f),
-                modifier = Modifier
-                    .size(56.dp)
-                    .align(Alignment.BottomEnd)
-                    .offset(x = 10.dp, y = 10.dp)
-            )
-
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (imageRes != null) {
+                Image(
+                    painter = painterResource(id = imageRes),
+                    contentDescription = category.name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                val c1 = Color(category.gradientColors.getOrNull(0) ?: 0xFF00E5D4)
+                val c2 = Color(category.gradientColors.getOrNull(1) ?: 0xFF008BFF)
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.White.copy(alpha = 0.22f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = iconVector,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
+                        .fillMaxSize()
+                        .background(Brush.linearGradient(listOf(c1, c2)))
+                )
+            }
 
+            // Scrim escuro para contraste impecável das fontes
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color(0xFF070B14).copy(alpha = 0.88f)
+                            )
+                        )
+                    )
+                    .padding(14.dp),
+                contentAlignment = Alignment.BottomStart
+            ) {
                 Column {
                     Text(
                         text = category.name,
@@ -207,6 +196,7 @@ private fun CategoryGridCard(
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = category.subtitle,
                         fontSize = 11.sp,

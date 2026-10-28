@@ -1,5 +1,6 @@
 package com.olirum.player.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -18,6 +19,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -113,7 +117,7 @@ fun HomeScreen(
                 }
             }
 
-            // Ações Rápidas (3 Cards modernos)
+            // Ações Rápidas (3 Cards com Ilustrações 3D Oficiais)
             item {
                 Row(
                     modifier = Modifier
@@ -124,78 +128,94 @@ fun HomeScreen(
                     HomeQuickActionCard(
                         title = "Músicas do Celular",
                         subtitle = "Arquivos & Pastas",
-                        icon = Icons.Rounded.FolderOpen,
-                        gradient = Brush.linearGradient(listOf(OlirumMint, OlirumCyan)),
+                        imageRes = com.olirum.player.R.drawable.shortcut_musicas_celular,
                         onClick = onNavigateToDevice,
                         modifier = Modifier.weight(1f)
                     )
                     HomeQuickActionCard(
                         title = "Rádios ao Vivo",
                         subtitle = "Radio Browser",
-                        icon = Icons.Rounded.Radio,
-                        gradient = Brush.linearGradient(listOf(OlirumBlue, OlirumPurple)),
+                        imageRes = com.olirum.player.R.drawable.shortcut_radios_aovivo,
                         onClick = onNavigateToRadios,
                         modifier = Modifier.weight(1f)
                     )
                     HomeQuickActionCard(
                         title = "Explorar Estilos",
                         subtitle = "Todos os Gêneros",
-                        icon = Icons.Rounded.Explore,
-                        gradient = Brush.linearGradient(listOf(OlirumPurple, OlirumMagenta)),
+                        imageRes = com.olirum.player.R.drawable.shortcut_explorar_estilos,
                         onClick = onNavigateToExplore,
                         modifier = Modifier.weight(1f)
                     )
                 }
             }
 
-            // Banner Destaque: Áudio Indestrutível
+            // Banner Destaque: Áudio Indestrutível (com arte oficial)
             item {
                 Spacer(modifier = Modifier.height(16.dp))
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
+                        .height(130.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(OlirumGradientBrush)
-                        .padding(16.dp)
                 ) {
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Rounded.GraphicEq,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
+                    Image(
+                        painter = painterResource(id = com.olirum.player.R.drawable.banner_audio_indestrutivel),
+                        contentDescription = "Banner Áudio Indestrutível",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color(0xFF070B14).copy(alpha = 0.35f),
+                                        Color(0xFF070B14).copy(alpha = 0.88f)
+                                    )
+                                )
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            .padding(16.dp),
+                        contentAlignment = Alignment.BottomStart
+                    ) {
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Rounded.GraphicEq,
+                                    contentDescription = null,
+                                    tint = OlirumCyan,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "ÁUDIO INDESTRUTÍVEL",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = OlirumCyan,
+                                    maxLines = 1,
+                                    softWrap = false
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "ÁUDIO INDESTRUTÍVEL",
-                                fontSize = 11.sp,
+                                text = "Reprodução Contínua em 2º Plano",
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White.copy(alpha = 0.9f),
+                                color = Color.White,
                                 maxLines = 1,
-                                softWrap = false
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = "Tela apagada, redes sociais ou outros apps: o áudio não para.",
+                                fontSize = 11.sp,
+                                color = Color.White.copy(alpha = 0.85f),
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Reprodução Contínua em 2º Plano",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            maxLines = 1,
-                            softWrap = false,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "Tela apagada, redes sociais ou outros apps: o áudio não para.",
-                            fontSize = 12.sp,
-                            color = Color.White.copy(alpha = 0.9f),
-                            maxLines = 1,
-                            softWrap = false,
-                            overflow = TextOverflow.Ellipsis
-                        )
                     }
                 }
             }
@@ -297,45 +317,71 @@ private fun CategoryPillCard(
     category: RadioCategory,
     onClick: () -> Unit
 ) {
-    val gradientBrush = remember(category.gradientColors) {
-        val c1 = Color(category.gradientColors.getOrNull(0) ?: 0xFF00E5D4)
-        val c2 = Color(category.gradientColors.getOrNull(1) ?: 0xFF008BFF)
-        Brush.linearGradient(listOf(c1, c2))
+    val context = LocalContext.current
+    val imageRes = remember(category.drawableResName) {
+        if (category.drawableResName != null) {
+            val id = context.resources.getIdentifier(category.drawableResName, "drawable", context.packageName)
+            if (id != 0) id else null
+        } else null
     }
 
     Surface(
         modifier = Modifier
-            .width(135.dp)
-            .height(74.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .width(145.dp)
+            .height(84.dp)
+            .clip(RoundedCornerShape(14.dp))
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(14.dp),
+        shadowElevation = 2.dp
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(gradientBrush)
-                .padding(10.dp),
-            contentAlignment = Alignment.BottomStart
-        ) {
-            Column {
-                Text(
-                    text = category.name,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    maxLines = 1,
-                    softWrap = false,
-                    overflow = TextOverflow.Ellipsis
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (imageRes != null) {
+                Image(
+                    painter = painterResource(id = imageRes),
+                    contentDescription = category.name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
                 )
-                Text(
-                    text = category.subtitle,
-                    fontSize = 10.sp,
-                    color = Color.White.copy(alpha = 0.85f),
-                    maxLines = 1,
-                    softWrap = false,
-                    overflow = TextOverflow.Ellipsis
-                )
+            } else {
+                val c1 = Color(category.gradientColors.getOrNull(0) ?: 0xFF00E5D4)
+                val c2 = Color(category.gradientColors.getOrNull(1) ?: 0xFF008BFF)
+                Box(modifier = Modifier.fillMaxSize().background(Brush.linearGradient(listOf(c1, c2))))
+            }
+
+            // Scrim escuro para contraste impecável das fontes
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color(0xFF070B14).copy(alpha = 0.88f)
+                            )
+                        )
+                    )
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                contentAlignment = Alignment.BottomStart
+            ) {
+                Column {
+                    Text(
+                        text = category.name,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = category.subtitle,
+                        fontSize = 10.sp,
+                        color = Color.White.copy(alpha = 0.85f),
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
     }
@@ -345,8 +391,7 @@ private fun CategoryPillCard(
 private fun HomeQuickActionCard(
     title: String,
     subtitle: String,
-    icon: ImageVector,
-    gradient: Brush,
+    imageRes: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -354,7 +399,7 @@ private fun HomeQuickActionCard(
 
     Surface(
         modifier = modifier
-            .height(105.dp)
+            .height(115.dp)
             .clip(RoundedCornerShape(14.dp))
             .clickable(onClick = onClick),
         color = colors.surface,
@@ -363,23 +408,17 @@ private fun HomeQuickActionCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(12.dp),
+                .padding(10.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Box(
+            Image(
+                painter = painterResource(id = imageRes),
+                contentDescription = title,
                 modifier = Modifier
-                    .size(34.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(gradient),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
+                    .size(46.dp)
+                    .clip(RoundedCornerShape(10.dp)),
+                contentScale = ContentScale.Crop
+            )
 
             Column {
                 Text(
@@ -393,7 +432,7 @@ private fun HomeQuickActionCard(
                 )
                 Text(
                     text = subtitle,
-                    fontSize = 11.sp,
+                    fontSize = 10.sp,
                     color = colors.textSecondary,
                     maxLines = 1,
                     softWrap = false,

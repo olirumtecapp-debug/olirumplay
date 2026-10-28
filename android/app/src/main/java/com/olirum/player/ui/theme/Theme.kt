@@ -61,42 +61,76 @@ private val DarkColorScheme = darkColorScheme(
     outline = OlirumBorder
 )
 
+private val LightColorScheme = lightColorScheme(
+    primary = OlirumLightBlue,
+    onPrimary = Color.White,
+    primaryContainer = OlirumLightCyan.copy(alpha = 0.15f),
+    onPrimaryContainer = OlirumLightBlue,
+    secondary = OlirumLightPurple,
+    onSecondary = Color.White,
+    background = OlirumLightBackground,
+    onBackground = OlirumLightTextPrimary,
+    surface = OlirumLightSurface,
+    onSurface = OlirumLightTextPrimary,
+    surfaceVariant = OlirumLightCard,
+    onSurfaceVariant = OlirumLightTextSecondary,
+    outline = OlirumLightBorder
+)
+
 @Composable
 fun OlirumPlayTheme(
     darkTheme: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val customColors = OlirumCustomColors(
-        background = OlirumBackground,
-        backgroundSecondary = OlirumBackgroundSecondary,
-        surface = OlirumSurface,
-        card = OlirumCard,
-        textPrimary = OlirumTextPrimary,
-        textSecondary = OlirumTextSecondary,
-        textDisabled = OlirumTextDisabled,
-        border = OlirumBorder,
-        cyan = OlirumCyan,
-        blue = OlirumBlue,
-        purple = OlirumPurple,
-        pink = OlirumPink,
-        isDark = true
-    )
+    val customColors = if (darkTheme) {
+        OlirumCustomColors(
+            background = OlirumBackground,
+            backgroundSecondary = OlirumBackgroundSecondary,
+            surface = OlirumSurface,
+            card = OlirumCard,
+            textPrimary = OlirumTextPrimary,
+            textSecondary = OlirumTextSecondary,
+            textDisabled = OlirumTextDisabled,
+            border = OlirumBorder,
+            cyan = OlirumCyan,
+            blue = OlirumBlue,
+            purple = OlirumPurple,
+            pink = OlirumPink,
+            isDark = true
+        )
+    } else {
+        OlirumCustomColors(
+            background = OlirumLightBackground,
+            backgroundSecondary = OlirumLightBackgroundSecondary,
+            surface = OlirumLightSurface,
+            card = OlirumLightCard,
+            textPrimary = OlirumLightTextPrimary,
+            textSecondary = OlirumLightTextSecondary,
+            textDisabled = OlirumLightTextDisabled,
+            border = OlirumLightBorder,
+            cyan = OlirumLightCyan,
+            blue = OlirumLightBlue,
+            purple = OlirumLightPurple,
+            pink = OlirumLightPink,
+            isDark = false
+        )
+    }
 
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            val barColor = OlirumBackground.toArgb()
+            val barColor = (if (darkTheme) OlirumBackground else OlirumLightBackground).toArgb()
             window.statusBarColor = barColor
             window.navigationBarColor = barColor
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
-            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = false
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
         }
     }
 
     CompositionLocalProvider(LocalOlirumColors provides customColors) {
         MaterialTheme(
-            colorScheme = DarkColorScheme,
+            colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
             content = content
         )
     }

@@ -1,5 +1,6 @@
 package com.olirum.player.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,6 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -100,58 +104,87 @@ fun CategoryStationsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Banner do Gênero com degradê estilizado
-            val gradientBrush = remember(category.gradientColors) {
-                val c1 = Color(category.gradientColors.getOrNull(0) ?: 0xFF00E5D4)
-                val c2 = Color(category.gradientColors.getOrNull(1) ?: 0xFF008BFF)
-                Brush.linearGradient(listOf(c1, c2))
+            // Banner do Gênero com arte oficial 3D
+            val context = LocalContext.current
+            val imageRes = remember(category.drawableResName) {
+                if (category.drawableResName != null) {
+                    val id = context.resources.getIdentifier(category.drawableResName, "drawable", context.packageName)
+                    if (id != 0) id else null
+                } else null
             }
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .height(115.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(gradientBrush)
-                    .padding(16.dp)
             ) {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Rounded.Radio,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+                if (imageRes != null) {
+                    Image(
+                        painter = painterResource(id = imageRes),
+                        contentDescription = category.name,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    val c1 = Color(category.gradientColors.getOrNull(0) ?: 0xFF00E5D4)
+                    val c2 = Color(category.gradientColors.getOrNull(1) ?: 0xFF008BFF)
+                    Box(modifier = Modifier.fillMaxSize().background(Brush.linearGradient(listOf(c1, c2))))
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color(0xFF070B14).copy(alpha = 0.88f)
+                                )
+                            )
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                        .padding(14.dp),
+                    contentAlignment = Alignment.BottomStart
+                ) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Rounded.Radio,
+                                contentDescription = null,
+                                tint = OlirumCyan,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "GÊNERO SELECIONADO",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = OlirumCyan,
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "GÊNERO SELECIONADO",
-                            fontSize = 11.sp,
+                            text = category.name,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.85f),
+                            color = Color.White,
                             maxLines = 1,
-                            softWrap = false
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = category.subtitle,
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.9f),
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = category.name,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = category.subtitle,
-                        fontSize = 13.sp,
-                        color = Color.White.copy(alpha = 0.9f),
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis
-                    )
                 }
             }
 

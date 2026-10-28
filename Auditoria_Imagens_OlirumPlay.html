@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OlirumPlay — Painel de Auditoria de Imagens e Identidade Visual</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    :root {
+      --bg: #070B14;
+      --bg-secondary: #0D1523;
+      --surface: #111C2D;
+      --surface-hover: #16243A;
+      --card: #111C2D;
+      --border: #1D2B40;
+      --border-glow: rgba(0, 229, 212, 0.3);
+      --cyan: #00E5D4;
+      --blue: #008BFF;
+      --purple: #8B5CF6;
+      --pink: #FF3DAD;
+      --green: #10B981;
+      --orange: #F59E0B;
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-disabled: #475569;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      padding-bottom: 60px;
+      line-height: 1.5;
+    }
+
+    header {
+      background: linear-gradient(180deg, rgba(13, 21, 35, 0.95) 0%, rgba(7, 11, 20, 0.85) 100%);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 18px 28px;
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--cyan), var(--blue), var(--purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(0, 229, 212, 0.35);
+    }
+
+    .brand-logo svg {
+      width: 24px;
+      height: 24px;
+      fill: #070B14;
+    }
+
+    .brand-title h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #FFFFFF 0%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-title p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .stats-card {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 10px 18px;
+      border-radius: 14px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--cyan);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+    }
+
+    .progress-bar-container {
+      width: 130px;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-secondary);
+      border-radius: 99px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--purple));
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 9px 15px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, var(--cyan), var(--blue));
+      color: #070B14;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 0 15px rgba(0, 229, 212, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--cyan);
+      background: var(--surface-hover);
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 28px auto 0;
+      padding: 0 24px;
+    }
+
+    .instructions-box {
+      background: linear-gradient(135deg, rgba(0, 229, 212, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+      border: 1px solid rgba(0, 229, 212, 0.25);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 26px;
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+    }
+
+    .instructions-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .instructions-text h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--cyan);
+      margin-bottom: 6px;
+    }
+
+    .instructions-text p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .instructions-text code {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 7px;
+      border-radius: 6px;
+      color: var(--cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+      background: var(--bg-secondary);
+      padding: 12px 18px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-secondary);
+      padding: 7px 14px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background: var(--surface);
+    }
+
+    .tab-btn.active {
+      background: var(--surface);
+      color: var(--cyan);
+      border-color: rgba(0, 229, 212, 0.3);
+      box-shadow: 0 0 10px rgba(0, 229, 212, 0.15);
+    }
+
+    .search-box {
+      position: relative;
+      min-width: 260px;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 14px 8px 36px;
+      color: var(--text-primary);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--cyan);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      pointer-events: none;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 22px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .card.completed {
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    .card-header {
+      padding: 16px 18px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .card-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .badge-category {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      width: fit-content;
+    }
+
+    .badge-genre {
+      background: rgba(0, 229, 212, 0.15);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 229, 212, 0.3);
+    }
+
+    .badge-shortcut {
+      background: rgba(0, 139, 255, 0.15);
+      color: var(--blue);
+      border: 1px solid rgba(0, 139, 255, 0.3);
+    }
+
+    .badge-banner {
+      background: rgba(255, 61, 173, 0.15);
+      color: var(--pink);
+      border: 1px solid rgba(255, 61, 173, 0.3);
+    }
+
+    .badge-bg {
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--purple);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .card-filename {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--cyan);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 99px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .status-pending {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--orange);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .status-done {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .card-preview-area {
+      position: relative;
+      background: #05080E;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .card-preview-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: none;
+    }
+
+    .card-preview-img.visible {
+      display: block;
+    }
+
+    .dropzone-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(5, 8, 14, 0.7);
+      transition: all 0.2s;
+    }
+
+    .card-preview-img.visible ~ .dropzone-overlay {
+      background: rgba(5, 8, 14, 0.85);
+      opacity: 0;
+    }
+
+    .card-preview-area:hover .dropzone-overlay {
+      opacity: 1;
+    }
+
+    .dropzone-icon {
+      font-size: 32px;
+      color: var(--cyan);
+      opacity: 0.8;
+    }
+
+    .dropzone-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .dropzone-text span {
+      color: var(--cyan);
+      text-decoration: underline;
+    }
+
+    .dropzone-hint {
+      font-size: 11px;
+      color: var(--text-disabled);
+    }
+
+    .card-body {
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .prompt-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+    }
+
+    .prompt-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #E2E8F0;
+      max-height: 90px;
+      overflow-y: auto;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      user-select: all;
+    }
+
+    .prompt-box::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .prompt-box::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    .card-footer {
+      padding: 12px 18px 16px;
+      display: flex;
+      gap: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .btn-copy {
+      flex: 1;
+      background: rgba(0, 229, 212, 0.1);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 229, 212, 0.3);
+      justify-content: center;
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    .btn-copy:hover {
+      background: var(--cyan);
+      color: #070B14;
+    }
+
+    .btn-copy.copied {
+      background: var(--green);
+      color: #070B14;
+      border-color: var(--green);
+    }
+
+    .btn-paste {
+      flex: 1;
+      background: linear-gradient(90deg, rgba(0, 229, 212, 0.2), rgba(0, 139, 255, 0.2));
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      justify-content: center;
+      padding: 8px 12px;
+      font-size: 12px;
+      box-shadow: 0 0 10px rgba(0, 229, 212, 0.15);
+    }
+
+    .btn-paste:hover {
+      background: linear-gradient(90deg, var(--cyan), var(--blue));
+      color: #070B14;
+      box-shadow: 0 0 16px rgba(0, 229, 212, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .dropzone-paste-btn {
+      background: linear-gradient(90deg, var(--cyan), var(--blue));
+      color: #070B14;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      box-shadow: 0 0 15px rgba(0, 229, 212, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .dropzone-paste-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(0, 229, 212, 0.6);
+    }
+
+    .btn-download {
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--purple);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      padding: 8px 12px;
+      font-size: 12px;
+      display: none;
+    }
+
+    .btn-download.visible {
+      display: inline-flex;
+    }
+
+    .btn-download:hover {
+      background: var(--purple);
+      color: #FFFFFF;
+    }
+
+    .btn-remove {
+      background: rgba(239, 68, 68, 0.1);
+      color: #EF4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 8px 10px;
+      font-size: 12px;
+      display: none;
+    }
+
+    .btn-remove.visible {
+      display: inline-flex;
+    }
+
+    .hidden-file-input {
+      display: none;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface);
+      color: var(--text-primary);
+      border: 1px solid var(--cyan);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 229, 212, 0.3);
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+      .controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .search-box {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-content">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+          </svg>
+        </div>
+        <div class="brand-title">
+          <h1>OlirumPlay — Auditoria de Imagens</h1>
+          <p>Gerador e validador de identidade visual para botões, atalhos e gêneros musicais</p>
+        </div>
+      </div>
+
+      <div class="stats-card">
+        <div class="stat-item">
+          <span class="stat-value" id="statCompleted">0</span>
+          <span class="stat-label">Concluídas</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value" id="statPending">0</span>
+          <span class="stat-label">Pendentes</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressBar"></div>
+          </div>
+          <span class="stat-label" style="margin-top: 4px; display: block;" id="statPercentage">0%</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-primary" onclick="downloadAllZip()" style="background: linear-gradient(90deg, var(--purple), var(--pink)); color: white; border: none;">📦 Baixar Pacote ZIP</button>
+        <button class="btn btn-primary" onclick="exportData()" style="font-weight: 700;">💾 Exportar Arquivo JSON</button>
+        <button class="btn btn-secondary" onclick="triggerImport()">📂 Restaurar</button>
+        <input type="file" id="backupInput" style="display: none;" accept=".json" onchange="importData(event)">
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- INSTRUCTIONS -->
+    <div class="instructions-box">
+      <div class="instructions-icon">💡</div>
+      <div class="instructions-text">
+        <h3>Como Utilizar Este Painel de Criação:</h3>
+        <p>
+          1. Clique em <strong>"Copiar Prompt IA"</strong> no card do gênero ou atalho desejado.<br>
+          2. Cole no seu gerador de imagens (Midjourney, ChatGPT / DALL-E 3, Leonardo AI ou Bing Image Creator).<br>
+          3. Copie a imagem gerada e <strong>aperte Ctrl + V</strong> dentro do card (ou clique no card para selecionar o arquivo salvo).<br>
+          4. O card salva o arquivo automaticamente no seu navegador e você pode baixar clicando em <strong>"Baixar Imagem"</strong> para a pasta <code>D:\PlayerMPro\Id_Visual\assets_app\</code>.
+        </p>
+      </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls-bar">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="setFilter('all')">Todos (<span id="countAll">0</span>)</button>
+        <button class="tab-btn" onclick="setFilter('genre')">Gêneros & Estilos (<span id="countGenre">0</span>)</button>
+        <button class="tab-btn" onclick="setFilter('shortcut')">Atalhos Principais (<span id="countShortcut">0</span>)</button>
+        <button class="tab-btn" onclick="setFilter('banner')">Banners & Destaques (<span id="countBanner">0</span>)</button>
+        <button class="tab-btn" onclick="setFilter('bg')">Backgrounds (<span id="countBg">0</span>)</button>
+        <button class="tab-btn" onclick="setFilter('pending')">⏳ Pendentes</button>
+        <button class="tab-btn" onclick="setFilter('completed')">✅ Concluídos</button>
+      </div>
+
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nome ou arquivo..." oninput="handleSearch()">
+      </div>
+    </div>
+
+    <!-- CARDS GRID -->
+    <div class="cards-grid" id="cardsGrid">
+      <!-- Injetado dinamicamente via JavaScript -->
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast">
+    <span>✅</span>
+    <span id="toastMessage">Texto copiado!</span>
+  </div>
+
+  <script>
+    // LISTA COMPLETA DOS ASSETS NECESSÁRIOS NO OLIRUMPLAY
+    const ASSETS_CATALOG = [
+      // === ATALHOS DA TELA INICIAL (TOP CARDS) ===
+      {
+        id: "shortcut_musicas_celular",
+        category: "shortcut",
+        title: "Atalho: Músicas do Celular",
+        subtitle: "Acesso a arquivos locais e pastas do smartphone",
+        filename: "shortcut_musicas_celular.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ícone 3D vetorial moderno de uma pasta digital aberta com notas musicais luminosas saindo de dentro, efeito neon ciano (#00E5D4) e azul elétrico (#008BFF), estética futurista clean, isolado no fundo escuro (#070B14), alta definição, estilo aplicativo premium de música.",
+        promptEN: "Vector 3D modern app icon badge of a glowing digital folder open with luminous music notes floating out, sleek neon cyan #00E5D4 and electric blue #008BFF accents, glossy futuristic glassmorphism details, isolated on dark background #070B14, ultra-clean geometry, premium mobile UI asset, 8k resolution, minimalist, no text"
+      },
+      {
+        id: "shortcut_radios_aovivo",
+        category: "shortcut",
+        title: "Atalho: Rádios ao Vivo",
+        subtitle: "Catálogo de rádios online Radio Browser",
+        filename: "shortcut_radios_aovivo.png",
+        ratio: "512x512 ou 1024x1024",
+        promptPT: "Ícone 3D moderno de um aparelho de rádio transmissor retrô-futurista com antena emitindo ondas de sinal neon luminosas, gradiente ciano e roxo elétrico (#8B5CF6), fundo escuro elegante (#070B14), render 3D suave, alta qualidade.",
+        promptEN: "Vector 3D modern app icon badge of a stylish futuristic radio tuner receiver broadcasting vibrant neon soundwaves and signal rings, cyan #00E5D4 and vivid purple #8B5CF6 glow, isometric glassmorphism finish, isolated on dark background #070B14, crisp 3D render, minimalist, no text"
+      },
+      {
+        id: "shortcut_explorar_estilos",
+        category: "shortcut",
+        title: "Atalho: Explorar Estilos",
+        subtitle: "Navegação por todas as categorias e gêneros",
+        filename: "shortcut_explorar_estilos.png",
+        ratio: "512x512 ou 1024x1024",
+        promptPT: "Ícone 3D vetorial de uma bússola futurista holográfica combinada com um disco de vinil e ondas sonoras, brilho neon magenta (#FF3DAD) e ciano (#00E5D4), fundo escuro (#070B14), design premium.",
+        promptEN: "Vector 3D modern app icon badge of a futuristic holographic discovery compass merged with glowing vinyl record groove and sound spectrum, vibrant neon magenta #FF3DAD and cyan #00E5D4 glow, isolated on dark background #070B14, premium 3D mobile icon, ultra-clean, no text"
+      },
+      {
+        id: "shortcut_videoclipes",
+        category: "shortcut",
+        title: "Atalho: Videoclipes",
+        subtitle: "Acesso à seção de videoclipes oficiais do YouTube",
+        filename: "shortcut_videoclipes.png",
+        ratio: "512x512 ou 1024x1024",
+        promptPT: "Ícone 3D vetorial de uma tela de reprodução de vídeo moderna com botão de play luminoso flutuando, ondas de áudio neon magenta (#FF3DAD) e azul elétrico (#008BFF), fundo escuro (#070B14).",
+        promptEN: "Vector 3D modern app icon badge of a sleek curved holographic video display screen with a glowing floating neon play button symbol, vibrant magenta #FF3DAD and electric blue #008BFF light effects, isolated on dark background #070B14, futuristic media player style, 8k, no text"
+      },
+
+      // === BANNERS & DESTAQUES ===
+      {
+        id: "banner_audio_indestrutivel",
+        category: "banner",
+        title: "Banner: Áudio Indestrutível",
+        subtitle: "Card de reprodução contínua em 2º plano e tela apagada",
+        filename: "banner_audio_indestrutivel.png",
+        ratio: "1200x500 (Panorâmico)",
+        promptPT: "Ilustração vetorial panorâmica 3D com um fone de ouvido futurista brilhando cercado por um escudo de energia neon protetor transparente, ondas sonoras contínuas em gradiente ciano (#00E5D4), azul e magenta (#FF3DAD), fundo escuro profundo (#070B14), iluminação cinematográfica sutil.",
+        promptEN: "Wide cinematic banner illustration of futuristic glowing headphones protected by a translucent luminous energy shield forcefield, uninterrupted neon soundwave ripples flowing across, glowing cyan #00E5D4, electric blue and magenta #FF3DAD gradient, dark atmospheric backdrop #070B14, sleek vector 3D render, luxury tech look, no text"
+      },
+      {
+        id: "banner_splash_abertura",
+        category: "banner",
+        title: "Banner / Tela de Abertura (Splash)",
+        subtitle: "Fundo de impacto visual com as cores oficiais OlirumPlay",
+        filename: "banner_splash_abertura.png",
+        ratio: "1080x1920 (Vertical Mobile)",
+        promptPT: "Papel de parede abstrato vertical para celular, ondas sonoras volumétricas tridimensionais suaves flutuando no espaço escuro (#070B14), gradiente neon ciano (#00E5D4), azul profundo (#008BFF) e roxo (#8B5CF6), reflexos sutis de vidro e partículas de luz refinadas.",
+        promptEN: "Abstract vertical mobile wallpaper background, elegant 3D undulating sound wave ribbons floating in deep space, glowing neon cyan #00E5D4, royal blue #008BFF and ultraviolet #8B5CF6 gradients, smooth glass reflections and subtle audio frequency dust particles, ultra-dark #070B14 canvas, clean minimalist aesthetic, 8k, no text"
+      },
+
+      // === GÊNEROS & ESTILOS MUSICAIS (CARDS) ===
+      {
+        id: "genre_catolica",
+        category: "genre",
+        title: "Gênero: Música Católica",
+        subtitle: "Orações, Terço e Louvor",
+        filename: "genre_catolica.png",
+        ratio: "600x400 (Card Horizontal) ou 512x512",
+        promptPT: "Ilustração 3D vetorial de uma cruz estilizada luminosa e elegante com contas de terço brilhantes flutuando e notas musicais sacras ao redor, luz sagrada suave em tom ciano neon (#00E5D4) e azul celestial (#008BFF), atmosfera de paz, fundo escuro (#070B14).",
+        promptEN: "Vector 3D artistic music genre badge of an elegant modern glowing stylized cross surrounded by radiant floating rosary prayer beads and subtle holy music notes, peaceful ethereal aura in neon cyan #00E5D4 and heavenly blue #008BFF, dark background #070B14, clean respectful composition, 8k, no text"
+      },
+      {
+        id: "genre_classica",
+        category: "genre",
+        title: "Gênero: Música Clássica",
+        subtitle: "Bach, Mozart, Chopin & Grandes Orquestras",
+        filename: "genre_classica.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de um piano de cauda de concerto estilizado com teclas translúcidas e uma clave de sol dourada/roxa neon (#8B5CF6) flutuando acima da partitura, ondas orquestrais suaves, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of a sleek concert grand piano silhouette with luminous glowing keys, elegant treble clef floating above in neon purple #8B5CF6 and royal blue #008BFF light, flowing symphonic wave ribbons, isolated on dark background #070B14, refined classical luxury aesthetic, 8k, no text"
+      },
+      {
+        id: "genre_jazz_blues",
+        category: "genre",
+        title: "Gênero: Jazz & Blues",
+        subtitle: "Smooth Jazz, Chicago Blues & Soul",
+        filename: "genre_jazz_blues.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de um saxofone dourado brilhante estilizado emitindo ondas de fumaça neon magenta (#FF3DAD) e roxo profundo (#8B5CF6), atmosfera de clube de jazz noturno sofisticado, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of a stylized metallic saxophone releasing smooth neon trails of sound, glowing magenta #FF3DAD and deep purple #8B5CF6 smoke ribbons, sophisticated late-night Chicago jazz lounge vibe, dark background #070B14, isometric 3D render, minimalist, no text"
+      },
+      {
+        id: "genre_classic_rock",
+        category: "genre",
+        title: "Gênero: Classic Rock",
+        subtitle: "Lendas dos anos 60, 70 e 80",
+        filename: "genre_classic_rock.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de uma clássica guitarra elétrica Stratocaster estilizada com relâmpagos de neon ciano (#00E5D4) e azul elétrico (#008BFF), palheta flutuante e amplificador vintage sutil, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of an iconic vintage electric guitar stylized with electric neon lightning arcs in cyan #00E5D4 and deep rock blue #008BFF, floating guitar pick, dark stage background #070B14, powerful classic rock energy, clean 3D art, no text"
+      },
+      {
+        id: "genre_love_songs",
+        category: "genre",
+        title: "Gênero: Love Songs",
+        subtitle: "Baladas Românticas & Slow Hits",
+        filename: "genre_love_songs.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de um coração de cristal neon brilhante em magenta (#FF3DAD) e rosa suave entrelaçado com uma clave de sol luminosa e ondas sonoras românticas, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of a radiant glass crystal heart intertwined with a glowing musical treble clef, vibrant neon magenta #FF3DAD and romantic cyan #00E5D4 gradient light, soft ambient glow, isolated on dark background #070B14, romantic slow ballads mood, 8k, no text"
+      },
+      {
+        id: "genre_lounge",
+        category: "genre",
+        title: "Gênero: Lounge & Chillout",
+        subtitle: "Easy Listening, Smooth & Ambient",
+        filename: "genre_lounge.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de uma flor de lótus de vidro estilizada flutuando sobre ondas concêntricas de água e som, brilho suave em ciano menta (#00E5D4) e lavanda (#8B5CF6), sensação de paz e relaxamento, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of a serene geometric crystal lotus flower floating over calm concentric ripples of sound and water, soothing neon mint cyan #00E5D4 and lavender purple #8B5CF6 glow, zen chillout ambient feeling, dark background #070B14, clean render, no text"
+      },
+      {
+        id: "genre_love_rock",
+        category: "genre",
+        title: "Gênero: Love Rock",
+        subtitle: "Soft Rock, Power Ballads & Baladas",
+        filename: "genre_love_rock.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de uma guitarra elétrica com asas translúcidas luminosas e um coração de neon roxo (#8B5CF6) e magenta (#FF3DAD) pulsando, estilo power ballad anos 80, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of a stylized electric guitar with subtle translucent luminous wings and a pulsing neon heart in purple #8B5CF6 and pink magenta #FF3DAD, 80s power ballad romantic rock theme, isolated on dark background #070B14, sleek 3D artwork, no text"
+      },
+      {
+        id: "genre_pop_hits",
+        category: "genre",
+        title: "Gênero: Pop & Top 40",
+        subtitle: "Sucessos Globais Contemporâneos",
+        filename: "genre_pop_hits.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de uma estrela multifacetada brilhante com microfone pop de palco e ondas de equalizador coloridas, neon azul (#008BFF) e rosa vibrante (#FF3DAD), estilo hit mundial, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of a glowing faceted superstar emblem with a modern studio microphone and vibrant equalizer soundwaves, electric blue #008BFF and pop pink #FF3DAD neon lights, modern chart-topping global hits vibe, dark background #070B14, 8k, no text"
+      },
+      {
+        id: "genre_greatest_hits",
+        category: "genre",
+        title: "Gênero: Greatest Hits",
+        subtitle: "Os Maiores Sucessos de Todos os Tempos",
+        filename: "genre_greatest_hits.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de um disco de ouro ou platina brilhante em uma base futurista com troféu de música estilizado, anéis de neon ciano (#00E5D4) e azul (#008BFF), celebração de clássicos atemporais, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of a glowing golden and platinum vinyl record record award resting on a futuristic pedestal with neon rings in cyan #00E5D4 and royal blue #008BFF, timeless legendary hits trophy, dark background #070B14, premium 3D trophy, no text"
+      },
+      {
+        id: "genre_anos_70",
+        category: "genre",
+        title: "Gênero: Anos 70",
+        subtitle: "Disco, Classic Pop & Soul dos 70s",
+        filename: "genre_anos_70.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de um globo espelhado disco ball estilizado com fita cassete vintage e feixes de luz neon retrô dos anos 70 em roxo (#8B5CF6) e ciano (#00E5D4), fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of a stylized mirror disco ball reflecting retro 70s geometric light beams alongside a vintage audio cassette tape, glowing purple #8B5CF6 and cyan #00E5D4 reflections, 1970s funk disco soul vibe, isolated on dark background #070B14, 8k, no text"
+      },
+      {
+        id: "genre_anos_80",
+        category: "genre",
+        title: "Gênero: Anos 80",
+        subtitle: "Synthpop, New Wave & Hits dos 80s",
+        filename: "genre_anos_80.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de um rádio boombox retrô futurista synthwave com sintetizador de teclado e grade de neon magenta (#FF3DAD) e ciano elétrico (#00E5D4), anos 80 nostálgicos, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of an iconic retro 80s boombox stereo with synthwave keyboard keys and neon grid horizon in vibrant magenta #FF3DAD and electric cyan #00E5D4, 1980s synthpop new wave nostalgia, dark background #070B14, isometric 3D asset, no text"
+      },
+      {
+        id: "genre_anos_90",
+        category: "genre",
+        title: "Gênero: Anos 90",
+        subtitle: "Eurodance, Grunge & Pop dos 90s",
+        filename: "genre_anos_90.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de um Discman portátil com CD holográfico iridescente brilhando e ondas sonoras energéticas em azul elétrico (#008BFF) e roxo (#8B5CF6), anos 90 eurodance, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of a vintage 90s portable CD player discman with iridescent holographic compact disc floating out, electric blue #008BFF and ultraviolet #8B5CF6 energetic audio waves, 1990s eurodance and pop era, dark background #070B14, clean render, no text"
+      },
+      {
+        id: "genre_anos_2000",
+        category: "genre",
+        title: "Gênero: Anos 2000",
+        subtitle: "Millennium Pop, R&B e Rock",
+        filename: "genre_anos_2000.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de um MP3 player clássico com click-wheel branca e corpo metálico futurista Y2K, ondas sonoras neon ciano (#00E5D4) e rosa (#FF3DAD), estética ano 2000, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of an iconic Y2K millennium portable MP3 player with sleek metallic finish and glowing screen, cybernetic audio rings in neon cyan #00E5D4 and vivid pink #FF3DAD, 2000s millennium pop and r&b aesthetic, dark background #070B14, 8k, no text"
+      },
+      {
+        id: "genre_sertanejo",
+        category: "genre",
+        title: "Gênero: Sertanejo",
+        subtitle: "Modão, Sertanejo Raiz e Universitário",
+        filename: "genre_sertanejo.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de uma viola caipira brasileira estilizada em madeira polida moderna com cordas brilhantes de neon ciano (#00E5D4) e azul (#008BFF), chapéu sertanejo estilizado sutil, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of an acoustic brazilian 10-string viola caipira guitar with glowing neon strings in cyan #00E5D4 and warm country blue #008BFF, subtle stylized acoustic silhouette, modern country sertanejo theme, isolated on dark background #070B14, 8k, no text"
+      },
+      {
+        id: "genre_mpb_bossa",
+        category: "genre",
+        title: "Gênero: MPB & Bossa Nova",
+        subtitle: "Clássicos da Música Popular Brasileira",
+        filename: "genre_mpb_bossa.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de um violão clássico de nylon de madeira nobre com ondas sonoras suaves de brisa tropical e notas de Bossa Nova, neon roxo (#8B5CF6) e azul (#008BFF), atmosfera poética elegante, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of a sophisticated classical acoustic nylon guitar with gentle tropical breeze soundwaves and floating bossa nova notes, artistic neon purple #8B5CF6 and ocean blue #008BFF subtle glow, Brazilian MPB poetry aesthetic, dark background #070B14, clean render, no text"
+      },
+      {
+        id: "genre_samba_pagode",
+        category: "genre",
+        title: "Gênero: Samba & Pagode",
+        subtitle: "Roda de Samba, Partido Alto e Pagode",
+        filename: "genre_samba_pagode.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de um pandeiro de samba moderno estilizado com platinelas brilhantes e um cavaquinho ao lado, faixas de ritmo percussivo em neon magenta (#FF3DAD) e azul (#008BFF), energia alegre e festiva, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of a stylized modern tambourine (pandeiro) and small cavaquinho instrument, dynamic rhythm ribbons bursting in neon magenta #FF3DAD and electric blue #008BFF, joyful Brazilian samba rhythm energy, isolated on dark background #070B14, clean 3D, no text"
+      },
+      {
+        id: "genre_gospel",
+        category: "genre",
+        title: "Gênero: Gospel & Adoração",
+        subtitle: "Louvor, Adoração e Música Cristã",
+        filename: "genre_gospel.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de mãos estilizadas erguidas em louvor com asas de pomba da paz luminosas e raios de luz celestial ascendentes em ciano neon (#00E5D4) e roxo real (#8B5CF6), adoração profunda, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of gentle glowing hands raised in worship with stylized luminous dove wings and ascending beams of divine light, radiant neon cyan #00E5D4 and majestic purple #8B5CF6 rays, Christian gospel worship atmosphere, isolated on dark background #070B14, 8k, no text"
+      },
+      {
+        id: "genre_eletronica",
+        category: "genre",
+        title: "Gênero: Eletrônica & Dance",
+        subtitle: "House, EDM, Techno & Trance",
+        filename: "genre_eletronica.png",
+        ratio: "600x400 ou 512x512",
+        promptPT: "Ilustração 3D vetorial de uma mesa controladora de DJ futurista com jog wheels girando em neon ciano (#00E5D4) e faders luminosos em magenta (#FF3DAD), ondas de sintetizador pulsantes, festival EDM, fundo escuro (#070B14).",
+        promptEN: "Vector 3D music genre badge of a futuristic DJ console turntable with glowing jog wheels and illuminated equalizer faders, pulsing neon cyan #00E5D4 and laser magenta #FF3DAD sound frequencies, electronic dance music festival energy, isolated on dark background #070B14, 8k, no text"
+      },
+
+      // === BACKGROUNDS & ELEMENTOS DE FUNDO ===
+      {
+        id: "bg_now_playing",
+        category: "bg",
+        title: "Background: Player de Reprodução",
+        subtitle: "Fundo elegante para a tela de reprodução expandida",
+        filename: "bg_now_playing.png",
+        ratio: "1080x1920 (Vertical)",
+        promptPT: "Textura abstrata vertical ultra-escura (#070B14) com ondas sonoras sutis e fluídas em gradiente neon azul (#008BFF) e roxo (#8B5CF6) com desfoque suave, iluminação ambiente discreta que não atrapalha o texto, sem elementos no centro.",
+        promptEN: "Dark minimal ambient vertical background texture, deep space black #070B14 with very subtle, smooth undulating audio frequency waves in soft out-of-focus neon blue #008BFF and royal purple #8B5CF6, sleek premium audio player backdrop, empty center for UI readability, 8k, no text"
+      },
+      {
+        id: "bg_folder_header",
+        category: "bg",
+        title: "Background: Cabeçalho das Pastas",
+        subtitle: "Faixa decorativa para o topo da lista de pastas do celular",
+        filename: "bg_folder_header.png",
+        ratio: "1200x400 (Panorâmico)",
+        promptPT: "Banner panorâmico sutil e escuro com malha de pontos luminosos tecnológicos e curvas sonoras minimalistas em ciano neon (#00E5D4), fundo azul-marinho profundo (#0D1523), perfeito para cabeçalho de aplicativo.",
+        promptEN: "Subtle wide panoramic banner backdrop with sleek digital dot grid and minimal curving neon cyan #00E5D4 audio lines, deep navy dark background #0D1523, clean professional UI header banner, 8k, no text"
+      },
+      {
+        id: "bg_home_hero",
+        category: "bg",
+        title: "Background: Topo da Home Screen",
+        subtitle: "Gradiente neon suave para a saudação inicial",
+        filename: "bg_home_hero.png",
+        ratio: "1200x600 (Panorâmico)",
+        promptPT: "Gradiente abstrato escuro e luxuoso com brilho cósmico sutil nas bordas em ciano (#00E5D4) e magenta (#FF3DAD), fundo principal #070B14, textura de vidro fosco suave.",
+        promptEN: "Dark luxury abstract gradient banner with subtle cosmic edge glow in neon cyan #00E5D4 and soft magenta #FF3DAD, deep midnight #070B14 base, frosted glass aura, high-end mobile app hero background, 8k, no text"
+      }
+    ];
+
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let storageKey = 'olirumplay_images_audit_v2';
+    let userImages = {};
+
+    // === SISTEMA DE ARMAZENAMENTO ILIMITADO VIA INDEXEDDB ===
+    const DB_NAME = 'OlirumPlayAuditDB_v2';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'audit_images';
+
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = function(e) {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function saveImageToDB(assetId, dataUrl) {
+      try {
+        const db = await openDatabase();
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.put({ id: assetId, dataUrl: dataUrl, updatedAt: new Date().toISOString() });
+      } catch (err) {
+        console.error('Erro ao salvar no IndexedDB:', err);
+      }
+    }
+
+    async function loadAllFromDB() {
+      try {
+        const db = await openDatabase();
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.getAll();
+        return new Promise((resolve) => {
+          request.onsuccess = () => {
+            const results = request.result || [];
+            const map = {};
+            results.forEach(item => {
+              map[item.id] = { dataUrl: item.dataUrl, updatedAt: item.updatedAt };
+            });
+            resolve(map);
+          };
+          request.onerror = () => resolve({});
+        });
+      } catch (e) {
+        return {};
+      }
+    }
+
+    async function removeImageFromDB(assetId) {
+      try {
+        const db = await openDatabase();
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.delete(assetId);
+      } catch (e) {}
+    }
+
+    // === OTIMIZADOR DE IMAGENS AUTOMÁTICO (REDUZ DE 4MB PARA ~80KB SEM PERDER QUALIDADE) ===
+    function optimizeImage(dataUrl, maxDim = 800) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = function() {
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          try {
+            resolve(canvas.toDataURL('image/png', 0.88));
+          } catch (e) {
+            resolve(dataUrl);
+          }
+        };
+        img.onerror = () => resolve(dataUrl);
+        img.src = dataUrl;
+      });
+    }
+
+    // CARREGA DADOS DO INDEXEDDB E LOCALSTORAGE
+    async function loadStorage() {
+      // 1. Tenta carregar do IndexedDB
+      const dbImages = await loadAllFromDB();
+      // 2. Tenta mesclar com localStorage caso exista
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const localImgs = JSON.parse(saved);
+          Object.assign(userImages, localImgs);
+        }
+      } catch (e) {}
+      Object.assign(userImages, dbImages);
+      updateStats();
+      renderCards();
+    }
+
+    // SALVA NO BANCO E LOCALSTORAGE
+    function saveStorage() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(userImages));
+      } catch (e) {
+        // Ignora cota de localStorage pois o IndexedDB salva tudo ilimitado!
+      }
+      updateStats();
+    }
+
+    // ATUALIZA ESTATÍSTICAS DO TOPO
+    function updateStats() {
+      const total = ASSETS_CATALOG.length;
+      let completed = 0;
+
+      ASSETS_CATALOG.forEach(asset => {
+        if (userImages[asset.id] && userImages[asset.id].dataUrl) {
+          completed++;
+        }
+      });
+
+      const pending = total - completed;
+      const percentage = Math.round((completed / total) * 100);
+
+      document.getElementById('statCompleted').textContent = completed;
+      document.getElementById('statPending').textContent = pending;
+      document.getElementById('statPercentage').textContent = `${percentage}% Concluído`;
+      document.getElementById('progressBar').style.width = `${percentage}%`;
+
+      // Contadores nas abas
+      document.getElementById('countAll').textContent = total;
+      document.getElementById('countGenre').textContent = ASSETS_CATALOG.filter(a => a.category === 'genre').length;
+      document.getElementById('countShortcut').textContent = ASSETS_CATALOG.filter(a => a.category === 'shortcut').length;
+      document.getElementById('countBanner').textContent = ASSETS_CATALOG.filter(a => a.category === 'banner').length;
+      document.getElementById('countBg').textContent = ASSETS_CATALOG.filter(a => a.category === 'bg').length;
+    }
+
+    // RENDERIZAÇÃO DOS CARDS
+    function renderCards() {
+      const grid = document.getElementById('cardsGrid');
+      grid.innerHTML = '';
+
+      const filtered = ASSETS_CATALOG.filter(asset => {
+        const isCompleted = userImages[asset.id] && userImages[asset.id].dataUrl;
+        
+        // Filtro por categoria
+        if (currentFilter === 'pending' && isCompleted) return false;
+        if (currentFilter === 'completed' && !isCompleted) return false;
+        if (currentFilter !== 'all' && currentFilter !== 'pending' && currentFilter !== 'completed') {
+          if (asset.category !== currentFilter) return false;
+        }
+
+        // Filtro de busca
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          const matchTitle = asset.title.toLowerCase().includes(q);
+          const matchFilename = asset.filename.toLowerCase().includes(q);
+          const matchSubtitle = asset.subtitle.toLowerCase().includes(q);
+          return matchTitle || matchFilename || matchSubtitle;
+        }
+
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+            <div style="font-size: 40px; margin-bottom: 12px;">🔍</div>
+            <h3 style="font-size: 18px; color: var(--text-primary); margin-bottom: 6px;">Nenhum item encontrado</h3>
+            <p style="font-size: 13px;">Tente alterar os filtros ou o termo de pesquisa.</p>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(asset => {
+        const isDone = userImages[asset.id] && userImages[asset.id].dataUrl;
+        const imgData = isDone ? userImages[asset.id].dataUrl : '';
+
+        let badgeClass = 'badge-genre';
+        let badgeLabel = 'Gênero Musical';
+        if (asset.category === 'shortcut') { badgeClass = 'badge-shortcut'; badgeLabel = 'Atalho'; }
+        if (asset.category === 'banner') { badgeClass = 'badge-banner'; badgeLabel = 'Banner'; }
+        if (asset.category === 'bg') { badgeClass = 'badge-bg'; badgeLabel = 'Background'; }
+
+        const card = document.createElement('div');
+        card.className = `card ${isDone ? 'completed' : ''}`;
+        card.id = `card_${asset.id}`;
+
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="card-meta">
+              <span class="badge-category ${badgeClass}">${badgeLabel}</span>
+              <h2 class="card-title">${asset.title}</h2>
+              <p class="card-subtitle">${asset.subtitle}</p>
+              <div style="margin-top: 4px;">
+                <span class="card-filename">📁 ${asset.filename}</span>
+              </div>
+            </div>
+            <div>
+              <span class="status-pill ${isDone ? 'status-done' : 'status-pending'}" id="status_${asset.id}">
+                ${isDone ? '✅ Aprovada' : '⏳ Pendente'}
+              </span>
+            </div>
+          </div>
+
+          <div class="card-preview-area" id="previewArea_${asset.id}" ondragover="handleDragOver(event)" ondrop="handleDrop(event, '${asset.id}')">
+            <img src="${imgData}" class="card-preview-img ${isDone ? 'visible' : ''}" id="img_${asset.id}" alt="${asset.title}">
+            <div class="dropzone-overlay">
+              <button type="button" class="dropzone-paste-btn" onclick="event.stopPropagation(); pasteImageFromClipboard('${asset.id}')">
+                📋 ${isDone ? 'Substituir por Imagem Copiada' : 'Colar Imagem Copiada'}
+              </button>
+              <div class="dropzone-text" style="margin-top: 6px;">
+                ou <span onclick="triggerFileInput('${asset.id}')" style="cursor: pointer;">selecionar arquivo do PC</span>
+              </div>
+              <div class="dropzone-hint">${asset.ratio}</div>
+            </div>
+            <input type="file" class="hidden-file-input" id="file_${asset.id}" accept="image/*" onchange="handleFileSelect(event, '${asset.id}')">
+          </div>
+
+          <div class="card-body">
+            <div>
+              <div class="prompt-label">
+                <span>Prompt IA (Midjourney / DALL-E 3 / Leonardo)</span>
+                <span style="color: var(--cyan); cursor: pointer;" onclick="copyPrompt('${asset.id}', 'en')">Copiar EN</span>
+              </div>
+              <div class="prompt-box" onclick="copyPrompt('${asset.id}', 'en')" title="Clique para copiar o prompt">${asset.promptEN}</div>
+            </div>
+
+            <div>
+              <div class="prompt-label">
+                <span>Descrição em Português</span>
+                <span style="color: var(--blue); cursor: pointer;" onclick="copyPrompt('${asset.id}', 'pt')">Copiar PT</span>
+              </div>
+              <div class="prompt-box" style="color: var(--text-secondary); max-height: 60px;" onclick="copyPrompt('${asset.id}', 'pt')">${asset.promptPT}</div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button class="btn btn-copy" id="btnCopy_${asset.id}" onclick="copyPrompt('${asset.id}', 'en')">
+              📋 Copiar Prompt
+            </button>
+            <button class="btn btn-paste" id="btnPaste_${asset.id}" onclick="pasteImageFromClipboard('${asset.id}')" title="Colar direto o que você acabou de copiar">
+              📥 Colar Imagem
+            </button>
+            <button class="btn btn-download ${isDone ? 'visible' : ''}" id="btnDownload_${asset.id}" onclick="downloadSingle('${asset.id}')" title="Baixar ${asset.filename}">
+              💾 Salvar
+            </button>
+            <button class="btn btn-remove ${isDone ? 'visible' : ''}" id="btnRemove_${asset.id}" onclick="removeImage('${asset.id}')" title="Remover imagem">
+              🗑️
+            </button>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    // COPIA PROMPT COM FEEDBACK VISUAL
+    function copyPrompt(assetId, lang = 'en') {
+      const asset = ASSETS_CATALOG.find(a => a.id === assetId);
+      if (!asset) return;
+
+      const text = lang === 'en' ? asset.promptEN : asset.promptPT;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(lang === 'en' ? 'Prompt em Inglês copiado!' : 'Prompt em Português copiado!');
+        const btn = document.getElementById(`btnCopy_${assetId}`);
+        if (btn) {
+          btn.classList.add('copied');
+          btn.innerHTML = '✅ Copiado!';
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerHTML = '📋 Copiar Prompt IA';
+          }, 2000);
+        }
+      }).catch(err => {
+        console.error('Erro ao copiar:', err);
+      });
+    }
+
+    // COLAR IMAGEM DIRETAMENTE DA ÁREA DE TRANSFERÊNCIA (ESTILO AUDITORIA DOS SANTOS)
+    async function pasteImageFromClipboard(assetId) {
+      const btn = document.getElementById(`btnPaste_${assetId}`);
+      if (btn) {
+        btn.innerHTML = '⏳ Colando...';
+      }
+
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.read) {
+          throw new Error('Navegador não suporta Clipboard.read()');
+        }
+
+        const clipboardItems = await navigator.clipboard.read();
+        let foundImage = false;
+
+        // 1. Procura primeiro se há dados de imagem direta (PNG, JPEG, etc.)
+        for (const item of clipboardItems) {
+          const imageType = item.types.find(type => type.startsWith('image/'));
+          if (imageType) {
+            const blob = await item.getType(imageType);
+            processImageFile(blob, assetId);
+            foundImage = true;
+            break;
+          }
+        }
+
+        // 2. Se não achou blob de imagem direto, busca no HTML copiado (ex: imagem copiada da web/chat)
+        if (!foundImage) {
+          for (const item of clipboardItems) {
+            if (item.types.includes('text/html')) {
+              const htmlBlob = await item.getType('text/html');
+              const htmlText = await htmlBlob.text();
+              const match = htmlText.match(/<img[^>]+src=["']([^"']+)["']/i);
+              if (match && match[1]) {
+                const src = match[1];
+                if (src.startsWith('data:image/')) {
+                  userImages[assetId] = {
+                    dataUrl: src,
+                    updatedAt: new Date().toISOString()
+                  };
+                  saveStorage();
+                  updateCardUi(assetId, src);
+                  foundImage = true;
+                  showToast('Imagem colada com sucesso!');
+                  break;
+                } else if (src.startsWith('http')) {
+                  convertUrlToDataUrl(src, assetId);
+                  foundImage = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        // 3. Se for link direto de imagem copiado como texto
+        if (!foundImage) {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            const cleanText = text.trim();
+            if (cleanText.startsWith('data:image/')) {
+              userImages[assetId] = {
+                dataUrl: cleanText,
+                updatedAt: new Date().toISOString()
+              };
+              saveStorage();
+              updateCardUi(assetId, cleanText);
+              foundImage = true;
+              showToast('Imagem colada com sucesso!');
+            } else if (cleanText.startsWith('http://') || cleanText.startsWith('https://')) {
+              convertUrlToDataUrl(cleanText, assetId);
+              foundImage = true;
+            }
+          }
+        }
+
+        if (!foundImage) {
+          showToast('Nenhuma imagem encontrada na área de transferência. Copie a imagem primeiro!');
+        }
+      } catch (err) {
+        console.warn('Clipboard read fallback:', err);
+        showToast('Clique no card e aperte Ctrl+V para colar.');
+      } finally {
+        if (btn) {
+          btn.innerHTML = '📥 Colar Imagem';
+        }
+      }
+    }
+
+    // CONVERTE URL DE IMAGEM DA WEB PARA DATAURL LOCAL
+    function convertUrlToDataUrl(url, assetId) {
+      showToast('Carregando imagem...');
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = async function() {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const rawDataUrl = canvas.toDataURL('image/png');
+          const optimized = await optimizeImage(rawDataUrl, 800);
+          userImages[assetId] = {
+            dataUrl: optimized,
+            updatedAt: new Date().toISOString()
+          };
+          await saveImageToDB(assetId, optimized);
+          saveStorage();
+          updateCardUi(assetId, optimized);
+          showToast('Imagem colada com sucesso!');
+        } catch (e) {
+          userImages[assetId] = {
+            dataUrl: url,
+            updatedAt: new Date().toISOString()
+          };
+          await saveImageToDB(assetId, url);
+          saveStorage();
+          updateCardUi(assetId, url);
+          showToast('Imagem colada com sucesso!');
+        }
+      };
+      img.onerror = function() {
+        showToast('Não foi possível carregar a imagem do link copiado.');
+      };
+      img.src = url;
+    }
+
+    // TRIGGER DE INPUT DE ARQUIVO
+    function triggerFileInput(assetId) {
+      const input = document.getElementById(`file_${assetId}`);
+      if (input) input.click();
+    }
+
+    // SELEÇÃO DE ARQUIVO MANUAL
+    function handleFileSelect(event, assetId) {
+      const file = event.target.files[0];
+      if (file) {
+        processImageFile(file, assetId);
+      }
+    }
+
+    // DRAG AND DROP
+    function handleDragOver(event) {
+      event.preventDefault();
+    }
+
+    function handleDrop(event, assetId) {
+      event.preventDefault();
+      if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+        processImageFile(event.dataTransfer.files[0], assetId);
+      }
+    }
+
+    // PROCESSA ARQUIVO DE IMAGEM PARA DATAURL OTIMIZADO
+    function processImageFile(file, assetId) {
+      if (!file.type.startsWith('image/')) {
+        showToast('Por favor, selecione um arquivo de imagem válido.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const rawDataUrl = e.target.result;
+        showToast('Otimizando e salvando imagem...');
+        const optimized = await optimizeImage(rawDataUrl, 800);
+        userImages[assetId] = {
+          dataUrl: optimized,
+          updatedAt: new Date().toISOString()
+        };
+        await saveImageToDB(assetId, optimized);
+        saveStorage();
+        updateCardUi(assetId, optimized);
+        showToast('Imagem adicionada e salva com sucesso!');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ATUALIZA UI DO CARD ESPECÍFICO SEM RE-RENDERIZAR TUDO
+    function updateCardUi(assetId, dataUrl) {
+      const card = document.getElementById(`card_${assetId}`);
+      const img = document.getElementById(`img_${assetId}`);
+      const status = document.getElementById(`status_${assetId}`);
+      const btnDownload = document.getElementById(`btnDownload_${assetId}`);
+      const btnRemove = document.getElementById(`btnRemove_${assetId}`);
+
+      if (dataUrl) {
+        if (card) card.classList.add('completed');
+        if (img) {
+          img.src = dataUrl;
+          img.classList.add('visible');
+        }
+        if (status) {
+          status.className = 'status-pill status-done';
+          status.innerHTML = '✅ Aprovada';
+        }
+        if (btnDownload) btnDownload.classList.add('visible');
+        if (btnRemove) btnRemove.classList.add('visible');
+      } else {
+        if (card) card.classList.remove('completed');
+        if (img) {
+          img.src = '';
+          img.classList.remove('visible');
+        }
+        if (status) {
+          status.className = 'status-pill status-pending';
+          status.innerHTML = '⏳ Pendente';
+        }
+        if (btnDownload) btnDownload.classList.remove('visible');
+        if (btnRemove) btnRemove.classList.remove('visible');
+      }
+      updateStats();
+    }
+
+    // REMOVE UMA IMAGEM
+    async function removeImage(assetId) {
+      if (confirm('Deseja remover a imagem deste card?')) {
+        delete userImages[assetId];
+        await removeImageFromDB(assetId);
+        saveStorage();
+        updateCardUi(assetId, null);
+        showToast('Imagem removida.');
+      }
+    }
+
+    // BAIXA IMAGEM ÚNICA COM O NOME CORRETO
+    function downloadSingle(assetId) {
+      const asset = ASSETS_CATALOG.find(a => a.id === assetId);
+      const data = userImages[assetId];
+      if (!asset || !data || !data.dataUrl) return;
+
+      const link = document.createElement('a');
+      link.href = data.dataUrl;
+      link.download = asset.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast(`Baixando ${asset.filename}...`);
+    }
+
+    // SUPORTE A CTRL + V GLOBAL E NO CARD
+    window.addEventListener('paste', function(e) {
+      const items = e.clipboardData.items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+
+          // Tenta identificar se o usuário estava com foco sobre algum card específico
+          const hoveredCard = document.querySelector('.card:hover');
+          if (hoveredCard) {
+            const assetId = hoveredCard.id.replace('card_', '');
+            processImageFile(file, assetId);
+            return;
+          }
+
+          // Senão, acha o primeiro card pendente da visualização atual
+          const firstPending = ASSETS_CATALOG.find(a => !userImages[a.id]);
+          if (firstPending) {
+            processImageFile(file, firstPending.id);
+            return;
+          }
+
+          showToast('Passe o mouse sobre o card desejado antes de apertar Ctrl+V.');
+          break;
+        }
+      }
+    });
+
+    // FILTROS
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      renderCards();
+    }
+
+    // BUSCA
+    function handleSearch() {
+      searchQuery = document.getElementById('searchInput').value;
+      renderCards();
+    }
+
+    // TOAST NOTIFICATION
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const msgEl = document.getElementById('toastMessage');
+      msgEl.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2600);
+    }
+
+    // BAIXAR TODAS AS IMAGENS EM ARQUIVO ZIP
+    async function downloadAllZip() {
+      if (typeof JSZip === 'undefined') {
+        showToast('Biblioteca ZIP carregando... exportando em JSON');
+        exportData();
+        return;
+      }
+      const zip = new JSZip();
+      let count = 0;
+      for (const asset of ASSETS_CATALOG) {
+        if (userImages[asset.id] && userImages[asset.id].dataUrl) {
+          const dataUrl = userImages[asset.id].dataUrl;
+          if (dataUrl.includes(',')) {
+            const base64Data = dataUrl.split(',')[1];
+            if (base64Data) {
+              zip.file(asset.filename, base64Data, { base64: true });
+              count++;
+            }
+          }
+        }
+      }
+      if (count === 0) {
+        showToast('Nenhuma imagem aprovada para baixar no ZIP ainda.');
+        return;
+      }
+      showToast(`Gerando pacote ZIP com ${count} imagens...`);
+      try {
+        const content = await zip.generateAsync({ type: 'blob' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        link.download = 'olirumplay_assets.zip';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('Download do ZIP iniciado com sucesso!');
+      } catch (e) {
+        console.error('Erro ao gerar ZIP:', e);
+        exportData();
+      }
+    }
+
+    // EXPORTAR BACKUP JSON
+    function exportData() {
+      const jsonStr = JSON.stringify(userImages, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `olirumplay_backup_imagens_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Backup exportado com sucesso!');
+    }
+
+    // RESTAURAR BACKUP JSON
+    function triggerImport() {
+      document.getElementById('backupInput').click();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          userImages = Object.assign({}, userImages, imported);
+          for (const key of Object.keys(imported)) {
+            if (imported[key] && imported[key].dataUrl) {
+              await saveImageToDB(key, imported[key].dataUrl);
+            }
+          }
+          saveStorage();
+          renderCards();
+          showToast('Backup restaurado com sucesso!');
+        } catch (err) {
+          alert('Arquivo de backup inválido.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // INICIALIZAÇÃO
+    window.onload = function() {
+      loadStorage();
+      updateStats();
+      renderCards();
+    };
+  </script>
+</body>
+</html>

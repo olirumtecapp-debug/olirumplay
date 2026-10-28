@@ -5,8 +5,12 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -157,50 +161,83 @@ fun DeviceLibraryScreen(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    shape = RoundedCornerShape(12.dp),
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .clip(RoundedCornerShape(14.dp)),
+                    shape = RoundedCornerShape(14.dp),
                     color = colors.surface,
                     shadowElevation = 2.dp
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Pasta: ${folder.name}",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = colors.textPrimary,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                text = folder.path,
-                                fontSize = 11.sp,
-                                color = colors.textSecondary,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-
-                        Button(
-                            onClick = {
-                                if (folder.tracks.isNotEmpty()) {
-                                    viewModel.playTrack(folder.tracks.first(), folder.tracks)
-                                }
-                            },
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = OlirumCyan)
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        Image(
+                            painter = painterResource(id = com.olirum.player.R.drawable.bg_folder_header),
+                            contentDescription = null,
+                            modifier = Modifier.matchParentSize(),
+                            contentScale = ContentScale.Crop,
+                            alpha = 0.35f
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = Color(0xFF070B14), modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Tocar Pasta", color = Color(0xFF070B14), fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Pasta: ${folder.name}",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colors.textPrimary,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = folder.path,
+                                    fontSize = 11.sp,
+                                    color = colors.textSecondary,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Button(
+                                    onClick = {
+                                        if (folder.tracks.isNotEmpty()) {
+                                            viewModel.playTrack(folder.tracks.first(), folder.tracks)
+                                        }
+                                    },
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = OlirumCyan),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                                ) {
+                                    Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = Color(0xFF070B14), modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(3.dp))
+                                    Text("Tocar", color = Color(0xFF070B14), fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                                }
+
+                                OutlinedButton(
+                                    onClick = {
+                                        if (folder.tracks.isNotEmpty()) {
+                                            val shuffled = folder.tracks.shuffled()
+                                            viewModel.playTrack(shuffled.first(), shuffled)
+                                        }
+                                    },
+                                    shape = RoundedCornerShape(10.dp),
+                                    border = BorderStroke(1.dp, OlirumPurple),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = OlirumPurple),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
+                                ) {
+                                    Icon(Icons.Rounded.Shuffle, contentDescription = null, tint = OlirumPurple, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(3.dp))
+                                    Text("Aleatório", color = OlirumPurple, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                                }
+                            }
                         }
                     }
                 }
@@ -533,6 +570,39 @@ fun DeviceLibraryScreen(
                                                 maxLines = 1,
                                                 softWrap = false,
                                                 overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+
+                                        IconButton(
+                                            onClick = {
+                                                if (folder.tracks.isNotEmpty()) {
+                                                    val shuffled = folder.tracks.shuffled()
+                                                    viewModel.playTrack(shuffled.first(), shuffled)
+                                                }
+                                            },
+                                            modifier = Modifier.size(36.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.Shuffle,
+                                                contentDescription = "Tocar Pasta Aleatório",
+                                                tint = OlirumPurple,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+
+                                        IconButton(
+                                            onClick = {
+                                                if (folder.tracks.isNotEmpty()) {
+                                                    viewModel.playTrack(folder.tracks.first(), folder.tracks)
+                                                }
+                                            },
+                                            modifier = Modifier.size(36.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.PlayArrow,
+                                                contentDescription = "Tocar Pasta",
+                                                tint = OlirumCyan,
+                                                modifier = Modifier.size(22.dp)
                                             )
                                         }
 
