@@ -11,6 +11,9 @@ interface TrackDao {
     @Query("SELECT * FROM saved_tracks WHERE source = 'offline' ORDER BY savedAt DESC")
     fun getOfflineTracks(): Flow<List<TrackEntity>>
 
+    @Query("SELECT * FROM saved_tracks WHERE id = :trackId LIMIT 1")
+    suspend fun getTrackById(trackId: String): TrackEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTrack(track: TrackEntity)
 

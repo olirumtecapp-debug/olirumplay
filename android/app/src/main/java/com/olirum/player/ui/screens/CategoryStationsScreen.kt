@@ -222,8 +222,9 @@ fun CategoryStationsScreen(
                             containerColor = colors.surface,
                             labelColor = colors.textSecondary
                         ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            borderColor = if (isSelected) OlirumCyan else colors.border
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            if (isSelected) OlirumCyan else colors.border
                         )
                     )
                 }

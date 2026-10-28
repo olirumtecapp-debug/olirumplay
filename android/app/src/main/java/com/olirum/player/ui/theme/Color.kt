@@ -15,6 +15,7 @@ val OlirumCyan = Color(0xFF00E5D4)
 val OlirumBlue = Color(0xFF008BFF)
 val OlirumPurple = Color(0xFF8B5CF6)
 val OlirumPink = Color(0xFFFF3DAD)
+val OlirumMagenta = Color(0xFFFF3DAD)
 val OlirumMint = Color(0xFF00E5D4)
 
 // Tipografia e Contrastes

@@ -142,8 +142,9 @@ class MusicRepository(
                 return@withContext LyricsData(isInstrumental = true)
             }
 
-            if (!dto.syncedLyrics.isNullOrBlank()) {
-                val parsed = parseLrc(dto.syncedLyrics)
+            val synced = dto.syncedLyrics
+            if (!synced.isNullOrBlank()) {
+                val parsed = parseLrc(synced)
                 if (parsed.isNotEmpty()) {
                     return@withContext LyricsData(
                         hasSynced = true,
@@ -152,8 +153,9 @@ class MusicRepository(
                 }
             }
 
-            if (!dto.plainLyrics.isNullOrBlank()) {
-                val plainLines = dto.plainLyrics.lines().map { it.trim() }.filter { it.isNotEmpty() }
+            val plain = dto.plainLyrics
+            if (!plain.isNullOrBlank()) {
+                val plainLines = plain.lines().map { it.trim() }.filter { it.isNotEmpty() }
                 return@withContext LyricsData(
                     hasSynced = false,
                     plainLines = plainLines

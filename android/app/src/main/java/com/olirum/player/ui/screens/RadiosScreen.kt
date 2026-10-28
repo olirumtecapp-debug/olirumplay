@@ -159,8 +159,9 @@ fun RadiosScreen(
                         containerColor = colors.surface,
                         labelColor = colors.textSecondary
                     ),
-                    border = FilterChipDefaults.filterChipBorder(
-                        borderColor = if (isAllSelected) OlirumCyan else colors.border
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        if (isAllSelected) OlirumCyan else colors.border
                     )
                 )
 
@@ -180,8 +181,9 @@ fun RadiosScreen(
                             containerColor = colors.surface,
                             labelColor = colors.textSecondary
                         ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            borderColor = if (isSelected) OlirumCyan else colors.border
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            if (isSelected) OlirumCyan else colors.border
                         )
                     )
                 }
@@ -209,8 +211,9 @@ fun RadiosScreen(
                             containerColor = colors.surface,
                             labelColor = colors.textSecondary
                         ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            borderColor = if (isSelected) OlirumBlue else colors.border
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            if (isSelected) OlirumBlue else colors.border
                         )
                     )
                 }
