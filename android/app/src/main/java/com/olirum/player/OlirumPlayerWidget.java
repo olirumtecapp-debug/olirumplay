@@ -7,13 +7,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.view.View;
 import android.widget.RemoteViews;
 
-import androidx.media3.common.MediaItem;
-import androidx.media3.common.Player;
 import androidx.media3.session.MediaController;
 import androidx.media3.session.SessionToken;
 
@@ -21,9 +18,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.olirum.player.service.OlirumPlaybackService;
 
-import coil.ImageLoader;
-import coil.request.ImageRequest;
-import coil.request.SuccessResult;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class OlirumPlayerWidget extends AppWidgetProvider {
 
@@ -144,19 +141,28 @@ public class OlirumPlayerWidget extends AppWidgetProvider {
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
 
-        // Carrega capa assincronamente com Coil se houver artworkUri
+        // Carrega capa assincronamente via decodeStream padrão
         if (artworkUri != null && !artworkUri.isEmpty()) {
             new Thread(() -> {
                 try {
-                    ImageLoader imageLoader = new ImageLoader.Builder(context).build();
-                    ImageRequest request = new ImageRequest.Builder(context)
-                            .data(artworkUri)
-                            .allowHardware(false)
-                            .build();
-
-                    coil.request.ImageResult result = imageLoader.executeBlocking(request);
-                    if (result instanceof SuccessResult) {
-                        Bitmap bitmap = ((BitmapDrawable) ((SuccessResult) result).getDrawable()).getBitmap();
+                    Uri uri = Uri.parse(artworkUri);
+                    Bitmap bitmap = null;
+                    if ("content".equals(uri.getScheme()) || "file".equals(uri.getScheme())) {
+                        try (InputStream is = context.getContentResolver().openInputStream(uri)) {
+                            if (is != null) {
+                                bitmap = BitmapFactory.decodeStream(is);
+                            }
+                        }
+                    } else if (artworkUri.startsWith("http://") || artworkUri.startsWith("https://")) {
+                        URL url = new URL(artworkUri);
+                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        conn.setDoInput(true);
+                        conn.connect();
+                        try (InputStream is = conn.getInputStream()) {
+                            bitmap = BitmapFactory.decodeStream(is);
+                        }
+                    }
+                    if (bitmap != null) {
                         RemoteViews coverView = new RemoteViews(context.getPackageName(), R.layout.widget_player);
                         coverView.setImageViewBitmap(R.id.widget_cover, bitmap);
                         appWidgetManager.partiallyUpdateAppWidget(appWidgetId, coverView);
