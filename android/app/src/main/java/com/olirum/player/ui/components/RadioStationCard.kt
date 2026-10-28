@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Equalizer
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Radio
+import androidx.compose.material.icons.rounded.Equalizer
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Radio
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +35,8 @@ fun RadioStationCard(
     station: RadioStation,
     isPlaying: Boolean,
     onPlayClick: () -> Unit,
+    onFavoriteClick: (() -> Unit)? = null,
+    isFavorite: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val colors = LocalOlirumColors.current
@@ -84,7 +88,7 @@ fun RadioStationCard(
                     )
                 } else {
                     Icon(
-                        imageVector = Icons.Default.Radio,
+                        imageVector = Icons.Rounded.Radio,
                         contentDescription = null,
                         tint = if (isPlaying) OlirumCyan else OlirumBlue,
                         modifier = Modifier.size(28.dp)
@@ -99,7 +103,7 @@ fun RadioStationCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Equalizer,
+                            imageVector = Icons.Rounded.Equalizer,
                             contentDescription = "Tocando",
                             tint = OlirumCyan,
                             modifier = Modifier.size(26.dp)
@@ -151,7 +155,7 @@ fun RadioStationCard(
                         text = station.genre,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = OlirumBlue,
+                        color = OlirumCyan,
                         maxLines = 1,
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis
@@ -165,7 +169,7 @@ fun RadioStationCard(
                     text = station.name,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (isPlaying) OlirumBlue else colors.textPrimary,
+                    color = if (isPlaying) OlirumCyan else colors.textPrimary,
                     maxLines = 1,
                     softWrap = false,
                     overflow = TextOverflow.Ellipsis
@@ -202,17 +206,33 @@ fun RadioStationCard(
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+
+            // Botão Favoritar
+            if (onFavoriteClick != null) {
+                IconButton(
+                    onClick = onFavoriteClick,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                        contentDescription = "Favoritar",
+                        tint = if (isFavorite) OlirumMagenta else colors.textSecondary.copy(alpha = 0.5f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
 
             // Botão de Play / Equalizer
             IconButton(
                 onClick = onPlayClick,
                 colors = IconButtonDefaults.iconButtonColors(
                     containerColor = if (isPlaying) OlirumCyan else OlirumBlue.copy(alpha = 0.12f)
-                )
+                ),
+                modifier = Modifier.size(38.dp)
             ) {
                 Icon(
-                    imageVector = if (isPlaying) Icons.Default.Equalizer else Icons.Default.PlayArrow,
+                    imageVector = if (isPlaying) Icons.Rounded.Equalizer else Icons.Rounded.PlayArrow,
                     contentDescription = if (isPlaying) "Ouvindo" else "Ouvir",
                     tint = if (isPlaying) Color(0xFF0F172A) else OlirumBlue,
                     modifier = Modifier.size(20.dp)

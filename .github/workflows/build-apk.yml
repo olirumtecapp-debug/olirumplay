@@ -39,21 +39,21 @@ jobs:
           mkdir -p release-apk
           # Usar o APK de Release oficial assinado permanentemente com v1 e v2
           if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
-            cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay-v1.4.0.apk
+            cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay-v1.5.0.apk
             cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay.apk
-            cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay-v1.4.0.apk
+            cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay-v1.5.0.apk
             cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay.apk
           else
-            cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.4.0.apk
+            cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.5.0.apk
             cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay.apk
-            cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.4.0.apk
+            cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.5.0.apk
             cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay.apk
           fi
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OlirumPlay-APK-v1.4.0
+          name: OlirumPlay-APK-v1.5.0
           path: release-apk/*
           retention-days: 30
 
@@ -61,23 +61,33 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
         with:
-          tag_name: v1.4.0
-          name: "OlirumPlay v1.4.0 (Nova Identidade Visual Oficial & Assinatura v1/v2 Universal)"
+          tag_name: v1.5.0
+          name: "OlirumPlay v1.5.0 — Reestruturação Completa: Rádios Online por Gênero & Músicas Locais"
           body: |
-            ### 🎨 OlirumPlay v1.4.0 — Nova Identidade Visual 3D & Assinatura Universal (v1 + v2)
+            ### 🎧 OlirumPlay v1.5.0 — Reestruturação Completa
 
-            **Melhorias Desta Versão:**
-            - 🎨 **Novos Ícones e Logotipo Oficial 3D:**
-              - Logotipo 3D horizontal estilizado (`Logo Neon 3D OlirumPlay.png`) na tela de abertura (Splash Screen).
-              - Novo ícone de aplicativo (`Ícone Neon de Áudio com Play.png`) aplicado em todas as resoluções de launcher.
-              - Ícone oficial de áudio integrado na barra superior e cabeçalhos.
-            - 🔑 **Assinatura Universal Permanente (JAR v1 + APK Block v2):**
-              - Configurado `v1SigningEnabled true` e `v2SigningEnabled true` com `olirumplay.keystore`.
-              - Compilação direta em modo Release otimizado, permitindo instalações e atualizações diretas no Android sem erro de incompatibilidade de pacote.
-            - 📻 **Rádios Online ao Vivo com 11+ Gêneros Gratuitos:**
-              - Católica, Rock Clássico, Música Clássica, Sertanejo & Modão, MPB & Bossa Nova, Flashback Anos 70/80/90, Jazz & Blues, Eletrônica, Forró, Reggae e Gospel.
-            - 🔤 **Zero Quebra de Linha:** Interface polida e responsiva em qualquer tela.
+            **Principais Novidades e Correções:**
+            - 📻 **Integração Real Radio Browser API (`/json/stations/search`):**
+              - Consulta dinâmica em tempo real com rotação inteligente de servidores espelhos (`de1`, `at1`, `nl1`).
+              - Classificação real por tags, remoção de duplicatas por `stationuuid` e registro de reprodução oficial (`/json/url/{id}`).
+              - **Música Católica em Destaque:** Rádio Evangelizar (Pe. Reginaldo Manzotti), Rádio Aparecida 104.3 FM, Canção Nova, Evangelizar Família e estações online.
+              - **Música Clássica em Destaque:** Rádio MEC FM Clássica, Radio Swiss Classic, Venice Classic, Calm Radio Mozart.
+              - **Jazz & Blues em Destaque:** Radio Swiss Jazz, 1.FM Blues Radio, SmoothJazz.com Global, Jazz24.
+              - **Categorias Prioritárias:** Love Songs, Classic Rock, Lounge, Love Rock, Pop, Greatest Hits, Décadas de 70, 80, 90 e 2000, Sertanejo, MPB & Bossa, Samba & Pagode, Gospel e Eletrônica.
+            - 📱 **Músicas do Celular (100% Preservadas):**
+              - Navegação completa por todas as faixas e por pastas reais do celular.
+              - Leitura de metadados ID3/APIC incorporados.
+              - Busca automática e manual de capas de álbuns via Cover Art Archive e MusicBrainz (`CoverArtSearchDialog`).
+              - Playlists personalizadas e favoritos persistidos no Room Database.
+            - 📜 **Letras LRCLIB Aprimoradas:**
+              - Suporte completo a letras sincronizadas (com destaque e rolagem automática), letras em texto (modo leitura) e indicação de faixas instrumentais.
+              - User-Agent descritivo e limpeza de títulos e ruídos de metadados.
+            - 🎨 **Design Premium Spotify/Deezer & Família de Ícones Rounded:**
+              - Tema escuro de alto contraste (`#070B14`, `#0D1523`, `#111C2D`, `#1D2B40`, `#00E5D4`, `#008BFF`, `#8B5CF6`).
+              - Ícones profissionais `Icons.Rounded.*` em todas as telas e componentes.
+              - MiniPlayer persistente moderno sem falsas durações para transmissões ao vivo.
+            - 🔑 **Assinatura Universal v1 + v2:** Atualização contínua sem erro de incompatibilidade.
           files: |
-            release-apk/OlirumPlay-v1.4.0.apk
+            release-apk/OlirumPlay-v1.5.0.apk
             release-apk/OlirumPlay.apk
           token: ${{ secrets.GITHUB_TOKEN }}

@@ -8,7 +8,7 @@ data class Track(
     val durationMs: Long,
     val mediaUri: String,
     val artworkUri: String? = null,
-    val source: String = "local", // "local", "audius", "offline"
+    val source: String = "local", // "local", "audius", "offline", "radio"
     val fileSize: Long = 0L,
     val isFavorite: Boolean = false,
     val folderPath: String = "",
@@ -20,9 +20,17 @@ data class LyricLine(
     val text: String
 )
 
+data class LyricsData(
+    val isInstrumental: Boolean = false,
+    val hasSynced: Boolean = false,
+    val syncedLines: List<LyricLine> = emptyList(),
+    val plainLines: List<String> = emptyList()
+)
+
 data class MusicFolder(
     val path: String,
     val name: String,
     val trackCount: Int,
     val tracks: List<Track>
 )
+

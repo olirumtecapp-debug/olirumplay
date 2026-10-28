@@ -6,10 +6,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Radio
+import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -47,26 +48,35 @@ fun MiniPlayer(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 6.dp)
-            .shadow(8.dp, RoundedCornerShape(16.dp))
+            .shadow(10.dp, RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick),
         color = colors.surface,
         tonalElevation = 6.dp
     ) {
         Column {
-            // Linha de progresso ou indicador Ao Vivo
+            // Linha de progresso (somente para faixas com duração real)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(3.dp)
                     .background(colors.border)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(fraction = if (isRadio) 1f else progressFraction.coerceIn(0f, 1f))
-                        .fillMaxHeight()
-                        .background(OlirumGradientBrush)
-                )
+                if (!isRadio) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(fraction = progressFraction.coerceIn(0f, 1f))
+                            .fillMaxHeight()
+                            .background(OlirumGradientBrush)
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight()
+                            .background(Color(0xFFE53935).copy(alpha = 0.8f))
+                    )
+                }
             }
 
             Row(
@@ -75,7 +85,7 @@ fun MiniPlayer(
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Imagem da Capa
+                // Imagem da Capa ou Logo da Rádio
                 Box(
                     modifier = Modifier
                         .size(44.dp)
@@ -95,9 +105,9 @@ fun MiniPlayer(
                         )
                     } else {
                         Icon(
-                            imageVector = Icons.Default.MusicNote,
+                            imageVector = if (isRadio) Icons.Rounded.Radio else Icons.Rounded.MusicNote,
                             contentDescription = null,
-                            tint = OlirumBlue,
+                            tint = if (isRadio) OlirumCyan else OlirumBlue,
                             modifier = Modifier.size(22.dp)
                         )
                     }
@@ -109,15 +119,35 @@ fun MiniPlayer(
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(
-                        text = currentTrack.title,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colors.textPrimary,
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (isRadio) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(Color(0xFFE53935))
+                                    .padding(horizontal = 4.dp, vertical = 1.dp)
+                            ) {
+                                Text(
+                                    text = "AO VIVO",
+                                    color = Color.White,
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    softWrap = false
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(6.dp))
+                        }
+                        Text(
+                            text = currentTrack.title,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colors.textPrimary,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                     Text(
                         text = currentTrack.artist,
                         fontSize = 12.sp,
@@ -128,7 +158,7 @@ fun MiniPlayer(
                     )
                 }
 
-                // Botão Play/Pause com gradiente
+                // Botão Play/Pause com gradiente neon
                 Box(
                     modifier = Modifier
                         .size(38.dp)
@@ -138,26 +168,26 @@ fun MiniPlayer(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                         contentDescription = if (isPlaying) "Pausar" else "Tocar",
                         tint = Color.White,
                         modifier = Modifier.size(22.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.width(6.dp))
-
-                // Botão Próxima Faixa
-                IconButton(
-                    onClick = onSkipNextClick,
-                    modifier = Modifier.size(38.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SkipNext,
-                        contentDescription = "Avançar",
-                        tint = colors.textPrimary,
-                        modifier = Modifier.size(24.dp)
-                    )
+                if (!isRadio) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    IconButton(
+                        onClick = onSkipNextClick,
+                        modifier = Modifier.size(38.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.SkipNext,
+                            contentDescription = "Avançar",
+                            tint = colors.textPrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
         }

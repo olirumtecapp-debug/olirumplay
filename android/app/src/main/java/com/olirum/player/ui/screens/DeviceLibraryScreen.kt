@@ -12,7 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat
 import com.olirum.player.OlirumApplication
 import com.olirum.player.model.MusicFolder
 import com.olirum.player.model.Track
+import com.olirum.player.ui.components.CoverArtSearchDialog
 import com.olirum.player.ui.components.OlirumTopBar
 import com.olirum.player.ui.components.TrackListItem
 import com.olirum.player.ui.theme.*
@@ -52,6 +53,7 @@ fun DeviceLibraryScreen(
     var selectedTab by remember { mutableIntStateOf(0) } // 0: Todas, 1: Pastas
     var selectedFolder by remember { mutableStateOf<MusicFolder?>(null) }
     var trackToAddToPlaylist by remember { mutableStateOf<Track?>(null) }
+    var trackToChangeCover by remember { mutableStateOf<Track?>(null) }
 
     fun doScan() {
         coroutineScope.launch {
@@ -111,6 +113,21 @@ fun DeviceLibraryScreen(
         }
     }
 
+    if (trackToChangeCover != null) {
+        val trk = trackToChangeCover!!
+        CoverArtSearchDialog(
+            track = trk,
+            onDismiss = { trackToChangeCover = null },
+            onSearch = { q -> viewModel.searchCoverCandidates(q) },
+            onSelectCover = { coverUrl ->
+                viewModel.setManualCover(trk, coverUrl)
+                localTracks = localTracks.map {
+                    if (it.id == trk.id) it.copy(artworkUri = coverUrl) else it
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             OlirumTopBar(
@@ -121,7 +138,7 @@ fun DeviceLibraryScreen(
                 actions = {
                     if (selectedFolder != null) {
                         IconButton(onClick = { selectedFolder = null }) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = colors.textPrimary)
+                            Icon(Icons.Rounded.ArrowBack, contentDescription = "Voltar", tint = colors.textPrimary)
                         }
                     }
                 }
@@ -179,11 +196,11 @@ fun DeviceLibraryScreen(
                                 }
                             },
                             shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = OlirumBlue)
+                            colors = ButtonDefaults.buttonColors(containerColor = OlirumCyan)
                         ) {
-                            Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = Color(0xFF070B14), modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Tocar Pasta", fontSize = 13.sp, maxLines = 1, softWrap = false)
+                            Text("Tocar Pasta", color = Color(0xFF070B14), fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
                         }
                     }
                 }
@@ -199,7 +216,8 @@ fun DeviceLibraryScreen(
                             isPlaying = isThisPlaying,
                             onTrackClick = { viewModel.playTrack(track, folder.tracks) },
                             onFavoriteClick = { viewModel.toggleFavorite(track) },
-                            onAddToPlaylistClick = { trackToAddToPlaylist = track }
+                            onAddToPlaylistClick = { trackToAddToPlaylist = track },
+                            onChangeCoverClick = { trackToChangeCover = track }
                         )
                     }
                     item {
@@ -248,24 +266,24 @@ fun DeviceLibraryScreen(
                             onClick = { requestPermissionAndScan() },
                             enabled = !isScanning,
                             shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = OlirumBlue)
+                            colors = ButtonDefaults.buttonColors(containerColor = OlirumCyan)
                         ) {
                             if (isScanning) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(16.dp),
-                                    color = Color.White,
+                                    color = Color(0xFF070B14),
                                     strokeWidth = 2.dp
                                 )
                             } else {
-                                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Rounded.Refresh, contentDescription = null, tint = Color(0xFF070B14), modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Escanear", fontSize = 13.sp, maxLines = 1, softWrap = false)
+                                Text("Escanear", color = Color(0xFF070B14), fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
                             }
                         }
                     }
                 }
 
-                // Campo de Busca (Sem quebra de linha)
+                // Campo de Busca
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -281,19 +299,19 @@ fun DeviceLibraryScreen(
                         )
                     },
                     leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = null, tint = colors.textSecondary)
+                        Icon(Icons.Rounded.Search, contentDescription = null, tint = colors.textSecondary)
                     },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
                             IconButton(onClick = { searchQuery = "" }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Limpar", tint = colors.textSecondary)
+                                Icon(Icons.Rounded.Clear, contentDescription = "Limpar", tint = colors.textSecondary)
                             }
                         }
                     },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = OlirumBlue,
+                        focusedBorderColor = OlirumCyan,
                         unfocusedBorderColor = colors.border,
                         focusedContainerColor = colors.surface,
                         unfocusedContainerColor = colors.surface,
@@ -321,9 +339,10 @@ fun DeviceLibraryScreen(
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = OlirumCyan.copy(alpha = 0.2f),
-                            selectedLabelColor = OlirumBlue,
-                            containerColor = colors.surface
+                            selectedContainerColor = OlirumCyan,
+                            selectedLabelColor = Color(0xFF070B14),
+                            containerColor = colors.surface,
+                            labelColor = colors.textSecondary
                         ),
                         modifier = Modifier.weight(1f)
                     )
@@ -340,9 +359,10 @@ fun DeviceLibraryScreen(
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = OlirumCyan.copy(alpha = 0.2f),
-                            selectedLabelColor = OlirumBlue,
-                            containerColor = colors.surface
+                            selectedContainerColor = OlirumCyan,
+                            selectedLabelColor = Color(0xFF070B14),
+                            containerColor = colors.surface,
+                            labelColor = colors.textSecondary
                         ),
                         modifier = Modifier.weight(1f)
                     )
@@ -357,7 +377,7 @@ fun DeviceLibraryScreen(
                                 .padding(horizontal = 16.dp, vertical = 4.dp),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            FilledTonalButton(
+                            Button(
                                 onClick = {
                                     if (filteredTracks.isNotEmpty()) {
                                         viewModel.playTrack(filteredTracks.first(), filteredTracks)
@@ -365,17 +385,14 @@ fun DeviceLibraryScreen(
                                 },
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(10.dp),
-                                colors = ButtonDefaults.filledTonalButtonColors(
-                                    containerColor = OlirumCyan.copy(alpha = 0.15f),
-                                    contentColor = OlirumBlue
-                                )
+                                colors = ButtonDefaults.buttonColors(containerColor = OlirumCyan)
                             ) {
-                                Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = Color(0xFF070B14), modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Tocar Todas", fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                                Text("Tocar Todas", color = Color(0xFF070B14), fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
                             }
 
-                            FilledTonalButton(
+                            OutlinedButton(
                                 onClick = {
                                     if (filteredTracks.isNotEmpty()) {
                                         val shuffled = filteredTracks.shuffled()
@@ -384,12 +401,9 @@ fun DeviceLibraryScreen(
                                 },
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(10.dp),
-                                colors = ButtonDefaults.filledTonalButtonColors(
-                                    containerColor = OlirumPurple.copy(alpha = 0.15f),
-                                    contentColor = OlirumPurple
-                                )
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = OlirumCyan)
                             ) {
-                                Icon(Icons.Default.Shuffle, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Rounded.Shuffle, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text("Aleatório", fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
                             }
@@ -405,7 +419,7 @@ fun DeviceLibraryScreen(
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(
-                                    imageVector = Icons.Default.MusicOff,
+                                    imageVector = Icons.Rounded.MusicOff,
                                     contentDescription = null,
                                     tint = colors.textSecondary.copy(alpha = 0.5f),
                                     modifier = Modifier.size(56.dp)
@@ -439,7 +453,8 @@ fun DeviceLibraryScreen(
                                     isPlaying = isThisPlaying,
                                     onTrackClick = { viewModel.playTrack(track, filteredTracks) },
                                     onFavoriteClick = { viewModel.toggleFavorite(track) },
-                                    onAddToPlaylistClick = { trackToAddToPlaylist = track }
+                                    onAddToPlaylistClick = { trackToAddToPlaylist = track },
+                                    onChangeCoverClick = { trackToChangeCover = track }
                                 )
                             }
                             item {
@@ -491,9 +506,9 @@ fun DeviceLibraryScreen(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.Folder,
+                                                imageVector = Icons.Rounded.Folder,
                                                 contentDescription = null,
-                                                tint = OlirumBlue,
+                                                tint = OlirumCyan,
                                                 modifier = Modifier.size(24.dp)
                                             )
                                         }
@@ -522,7 +537,7 @@ fun DeviceLibraryScreen(
                                         }
 
                                         Icon(
-                                            imageVector = Icons.Default.ChevronRight,
+                                            imageVector = Icons.Rounded.ChevronRight,
                                             contentDescription = null,
                                             tint = colors.textSecondary
                                         )
@@ -573,7 +588,11 @@ fun DeviceLibraryScreen(
                                 onValueChange = { newPlaylistName = it },
                                 placeholder = { Text("Nome da playlist...") },
                                 singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = OlirumCyan,
+                                    unfocusedBorderColor = colors.border
+                                )
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Button(
@@ -587,9 +606,9 @@ fun DeviceLibraryScreen(
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(containerColor = OlirumBlue)
+                                colors = ButtonDefaults.buttonColors(containerColor = OlirumCyan)
                             ) {
-                                Text("Criar e Adicionar", maxLines = 1, softWrap = false)
+                                Text("Criar e Adicionar", color = Color(0xFF070B14), fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
                             }
                         } else {
                             if (playlists.isEmpty()) {
@@ -611,7 +630,7 @@ fun DeviceLibraryScreen(
                                             .padding(vertical = 10.dp, horizontal = 6.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Icon(Icons.Default.QueueMusic, contentDescription = null, tint = OlirumBlue)
+                                        Icon(Icons.Rounded.QueueMusic, contentDescription = null, tint = OlirumCyan)
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
                                             text = pl.name,
@@ -626,16 +645,16 @@ fun DeviceLibraryScreen(
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             TextButton(onClick = { showCreateInput = true }) {
-                                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Rounded.Add, contentDescription = null, tint = OlirumCyan, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Criar Nova Playlist", maxLines = 1, softWrap = false)
+                                Text("Criar Nova Playlist", color = OlirumCyan, maxLines = 1, softWrap = false)
                             }
                         }
                     }
                 },
                 confirmButton = {
                     TextButton(onClick = { trackToAddToPlaylist = null }) {
-                        Text("Fechar")
+                        Text("Fechar", color = colors.textSecondary)
                     }
                 },
                 containerColor = colors.surface

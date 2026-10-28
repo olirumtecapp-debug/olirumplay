@@ -13,9 +13,11 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.olirum.player.data.local.PlaylistEntity
+import com.olirum.player.data.repository.CoverCandidate
 import com.olirum.player.data.repository.MusicRepository
 import com.olirum.player.data.repository.UserPreferencesRepository
 import com.olirum.player.model.LyricLine
+import com.olirum.player.model.LyricsData
 import com.olirum.player.model.Track
 import com.olirum.player.service.OlirumPlaybackService
 import kotlinx.coroutines.delay
@@ -48,6 +50,9 @@ class MainPlayerViewModel(
 
     private val _lyrics = MutableStateFlow<List<LyricLine>>(emptyList())
     val lyrics: StateFlow<List<LyricLine>> = _lyrics.asStateFlow()
+
+    private val _lyricsData = MutableStateFlow<LyricsData>(LyricsData())
+    val lyricsData: StateFlow<LyricsData> = _lyricsData.asStateFlow()
 
     private val _isLyricsLoading = MutableStateFlow(false)
     val isLyricsLoading: StateFlow<Boolean> = _isLyricsLoading.asStateFlow()
@@ -92,8 +97,14 @@ class MainPlayerViewModel(
                                 artworkUri = item.mediaMetadata.artworkUri?.toString()
                             )
                             _currentTrack.value = track
-                            _durationMs.value = mediaController?.duration?.coerceAtLeast(0L) ?: track.durationMs
-                            loadLyrics(track)
+                            if (track.source == "radio") {
+                                _durationMs.value = 0L
+                                _currentPositionMs.value = 0L
+                            } else {
+                                _durationMs.value = mediaController?.duration?.coerceAtLeast(0L) ?: track.durationMs
+                                resolveCoverIfNeeded(track)
+                                loadLyrics(track)
+                            }
                         }
                     }
 
@@ -117,15 +128,28 @@ class MainPlayerViewModel(
             while (true) {
                 mediaController?.let { controller ->
                     if (controller.isPlaying) {
-                        _currentPositionMs.value = controller.currentPosition.coerceAtLeast(0L)
-                        _durationMs.value = controller.duration.coerceAtLeast(0L)
-                        _currentTrack.value?.let { trk ->
-                            prefsRepository.savePlaybackState(trk.id, controller.currentPosition)
+                        if (_currentTrack.value?.source == "radio") {
+                            _currentPositionMs.value = 0L
+                            _durationMs.value = 0L
+                        } else {
+                            _currentPositionMs.value = controller.currentPosition.coerceAtLeast(0L)
+                            _durationMs.value = controller.duration.coerceAtLeast(0L)
+                            _currentTrack.value?.let { trk ->
+                                prefsRepository.savePlaybackState(trk.id, controller.currentPosition)
+                            }
                         }
                     }
                 }
                 delay(400)
             }
+        }
+    }
+
+    fun playRadioStation(station: com.olirum.player.model.RadioStation) {
+        val track = station.toTrack()
+        playTrack(track, listOf(track))
+        viewModelScope.launch {
+            com.olirum.player.OlirumApplication.instance.radioRepository.registerStationClick(station.id)
         }
     }
 
@@ -155,6 +179,7 @@ class MainPlayerViewModel(
         controller.setMediaItems(mediaItems, startIndex, 0L)
         controller.prepare()
         controller.play()
+        resolveCoverIfNeeded(track)
         loadLyrics(track)
     }
 
@@ -237,8 +262,42 @@ class MainPlayerViewModel(
     fun loadLyrics(track: Track) {
         viewModelScope.launch {
             _isLyricsLoading.value = true
-            _lyrics.value = musicRepository.getLyrics(track)
+            val data = musicRepository.getLyrics(track)
+            _lyricsData.value = data
+            _lyrics.value = data.syncedLines
             _isLyricsLoading.value = false
+        }
+    }
+
+    fun resolveCoverIfNeeded(track: Track) {
+        if (track.artworkUri.isNullOrBlank()) {
+            viewModelScope.launch {
+                val cover = musicRepository.resolveCover(track)
+                if (!cover.isNullOrBlank()) {
+                    if (_currentTrack.value?.id == track.id) {
+                        _currentTrack.value = _currentTrack.value?.copy(artworkUri = cover)
+                    }
+                    _queue.value = _queue.value.map {
+                        if (it.id == track.id) it.copy(artworkUri = cover) else it
+                    }
+                }
+            }
+        }
+    }
+
+    suspend fun searchCoverCandidates(query: String): List<CoverCandidate> {
+        return musicRepository.searchCoverCandidates(query)
+    }
+
+    fun setManualCover(track: Track, coverUrl: String) {
+        viewModelScope.launch {
+            musicRepository.setManualCover(track, coverUrl)
+            if (_currentTrack.value?.id == track.id) {
+                _currentTrack.value = _currentTrack.value?.copy(artworkUri = coverUrl)
+            }
+            _queue.value = _queue.value.map {
+                if (it.id == track.id) it.copy(artworkUri = coverUrl) else it
+            }
         }
     }
 

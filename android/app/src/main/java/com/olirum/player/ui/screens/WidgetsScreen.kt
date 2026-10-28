@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -67,7 +67,7 @@ fun WidgetsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Widgets,
+                                    imageVector = Icons.Rounded.Widgets,
                                     contentDescription = null,
                                     tint = Color.White,
                                     modifier = Modifier.size(22.dp)
@@ -121,7 +121,7 @@ fun WidgetsScreen(
                                             .background(OlirumBlue),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Icon(Icons.Default.MusicNote, contentDescription = null, tint = Color.White)
+                                        Icon(Icons.Rounded.MusicNote, contentDescription = null, tint = Color.White)
                                     }
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Column {
@@ -144,11 +144,11 @@ fun WidgetsScreen(
                                 }
 
                                 Row {
-                                    Icon(Icons.Default.SkipPrevious, contentDescription = null, tint = colors.textPrimary)
+                                    Icon(Icons.Rounded.SkipPrevious, contentDescription = null, tint = colors.textPrimary)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = OlirumBlue)
+                                    Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = OlirumCyan)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Icon(Icons.Default.SkipNext, contentDescription = null, tint = colors.textPrimary)
+                                    Icon(Icons.Rounded.SkipNext, contentDescription = null, tint = colors.textPrimary)
                                 }
                             }
                         }
@@ -177,9 +177,9 @@ fun WidgetsScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Default.GraphicEq,
+                                imageVector = Icons.Rounded.GraphicEq,
                                 contentDescription = null,
-                                tint = OlirumBlue,
+                                tint = OlirumCyan,
                                 modifier = Modifier.size(22.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -258,7 +258,7 @@ fun WidgetsScreen(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = if (isDarkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
+                                imageVector = if (isDarkMode) Icons.Rounded.DarkMode else Icons.Rounded.LightMode,
                                 contentDescription = null,
                                 tint = if (isDarkMode) OlirumCyan else OlirumBlue,
                                 modifier = Modifier.size(24.dp)

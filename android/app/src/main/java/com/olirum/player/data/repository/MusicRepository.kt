@@ -9,6 +9,7 @@ import com.olirum.player.data.local.PlaylistEntity
 import com.olirum.player.data.local.TrackEntity
 import com.olirum.player.data.remote.ApiClient
 import com.olirum.player.model.LyricLine
+import com.olirum.player.model.LyricsData
 import com.olirum.player.model.MusicFolder
 import com.olirum.player.model.Track
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,7 @@ class MusicRepository(
     private val scanner: MediaStoreScanner
 ) {
     private val gson = Gson()
+    val coverArtRepository = CoverArtRepository(context, database)
 
     val favoriteTracks: Flow<List<Track>> = database.trackDao().getFavoriteTracks()
         .map { list -> list.map { it.toTrack() } }
@@ -33,7 +35,17 @@ class MusicRepository(
 
     val playlists: Flow<List<PlaylistEntity>> = database.trackDao().getAllPlaylists()
 
-    suspend fun scanLocalTracks(): List<Track> = scanner.scanLocalTracks()
+    suspend fun scanLocalTracks(): List<Track> = withContext(Dispatchers.IO) {
+        val tracks = scanner.scanLocalTracks()
+        // Retorna as faixas locais e pode resolver artes em segundo plano
+        tracks
+    }
+
+    suspend fun resolveCover(track: Track): String? = coverArtRepository.getCoverForTrack(track)
+
+    suspend fun searchCoverCandidates(query: String) = coverArtRepository.searchCoverCandidates(query)
+
+    suspend fun setManualCover(track: Track, coverUrl: String) = coverArtRepository.setManualCover(track, coverUrl)
 
     fun groupTracksByFolder(tracks: List<Track>): List<MusicFolder> = scanner.groupTracksByFolder(tracks)
 
@@ -97,56 +109,17 @@ class MusicRepository(
         }
     }
 
-    suspend fun searchOnlineCatalog(query: String, genre: String? = null): List<Track> = withContext(Dispatchers.IO) {
+    suspend fun getLyrics(track: Track): LyricsData = withContext(Dispatchers.IO) {
         try {
-            val response = if (genre != null && query.isBlank()) {
-                ApiClient.audiusApi.getTrending(genre = genre)
-            } else {
-                ApiClient.audiusApi.searchTracks(query)
-            }
-            response.data?.map { dto ->
-                Track(
-                    id = "audius-${dto.id}",
-                    title = dto.title,
-                    artist = dto.user?.name ?: "Artista Audius",
-                    album = dto.genre ?: dto.user?.handle?.let { "@$it" } ?: "Audius Original",
-                    durationMs = (dto.duration ?: 180) * 1000L,
-                    mediaUri = "https://discoveryprovider.audius.co/v1/tracks/${dto.id}/stream?app_name=OlirumPlay",
-                    artworkUri = dto.artwork?.art1000 ?: dto.artwork?.art480 ?: dto.artwork?.art150,
-                    source = "audius"
-                )
-            } ?: emptyList()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            emptyList()
-        }
-    }
+            val cleanTitle = track.title
+                .replace(Regex("(?i)\\.mp3|\\.flac|\\.m4a|\\.wav|\\.aac"), "")
+                .replace(Regex("^\\d{1,3}\\s*[-._]\\s*"), "")
+                .replace(Regex("(?i)\\s*[\\(\\[].*?(official|clip|video|remaster|ao vivo|live|lyric|audio|feat|ft).*?[\\)\\]]"), "")
+                .trim()
 
-    suspend fun getTrendingOnline(genre: String? = null): List<Track> = withContext(Dispatchers.IO) {
-        try {
-            val response = ApiClient.audiusApi.getTrending(genre = genre)
-            response.data?.map { dto ->
-                Track(
-                    id = "audius-${dto.id}",
-                    title = dto.title,
-                    artist = dto.user?.name ?: "Artista Audius",
-                    album = dto.genre ?: dto.user?.handle?.let { "@$it" } ?: "Audius Original",
-                    durationMs = (dto.duration ?: 180) * 1000L,
-                    mediaUri = "https://discoveryprovider.audius.co/v1/tracks/${dto.id}/stream?app_name=OlirumPlay",
-                    artworkUri = dto.artwork?.art1000 ?: dto.artwork?.art480 ?: dto.artwork?.art150,
-                    source = "audius"
-                )
-            } ?: emptyList()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            emptyList()
-        }
-    }
-
-    suspend fun getLyrics(track: Track): List<LyricLine> = withContext(Dispatchers.IO) {
-        try {
-            val cleanTitle = track.title.replace(Regex("\\s*[\\(\\[].*?[\\)\\]]"), "").trim()
-            val cleanArtist = track.artist.replace(Regex("\\s*[\\(\\[].*?[\\)\\]]"), "").trim()
+            val cleanArtist = track.artist
+                .replace(Regex("(?i)\\s*[\\(\\[].*?(feat|ft).*?[\\)\\]]"), "")
+                .trim()
 
             var dto = try {
                 ApiClient.lrcLibApi.getLyrics(cleanTitle, cleanArtist)
@@ -154,17 +127,48 @@ class MusicRepository(
                 null
             }
 
-            if (dto?.syncedLyrics == null) {
+            if (dto?.syncedLyrics == null && dto?.plainLyrics == null) {
                 val searchList = ApiClient.lrcLibApi.searchLyrics("$cleanTitle $cleanArtist")
                 if (searchList.isNotEmpty()) {
                     dto = searchList.first()
                 }
             }
 
-            dto?.syncedLyrics?.let { parseLrc(it) } ?: emptyList()
+            if (dto == null) {
+                return@withContext LyricsData()
+            }
+
+            if (dto.instrumental == true) {
+                return@withContext LyricsData(isInstrumental = true)
+            }
+
+            if (!dto.syncedLyrics.isNullOrBlank()) {
+                val parsed = parseLrc(dto.syncedLyrics)
+                if (parsed.isNotEmpty()) {
+                    return@withContext LyricsData(
+                        hasSynced = true,
+                        syncedLines = parsed
+                    )
+                }
+            }
+
+            if (!dto.plainLyrics.isNullOrBlank()) {
+                val plainLines = dto.plainLyrics.lines().map { it.trim() }.filter { it.isNotEmpty() }
+                return@withContext LyricsData(
+                    hasSynced = false,
+                    plainLines = plainLines
+                )
+            }
+
+            LyricsData()
         } catch (e: Exception) {
-            emptyList()
+            LyricsData()
         }
+    }
+
+    suspend fun getLyricLines(track: Track): List<LyricLine> {
+        val result = getLyrics(track)
+        return result.syncedLines
     }
 
     private fun parseLrc(lrcContent: String): List<LyricLine> {

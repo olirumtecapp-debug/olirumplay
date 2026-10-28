@@ -5,10 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.GraphicEq
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -86,7 +86,7 @@ fun OlirumTopBar(
                 if (onSearchClick != null) {
                     IconButton(onClick = onSearchClick) {
                         Icon(
-                            imageVector = Icons.Default.Search,
+                            imageVector = Icons.Rounded.Search,
                             contentDescription = "Buscar",
                             tint = colors.textPrimary
                         )
@@ -96,7 +96,7 @@ fun OlirumTopBar(
                 if (onToggleTheme != null) {
                     IconButton(onClick = onToggleTheme) {
                         Icon(
-                            imageVector = if (isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            imageVector = if (isDarkTheme) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
                             contentDescription = if (isDarkTheme) "Modo Claro" else "Modo Escuro",
                             tint = if (isDarkTheme) OlirumCyan else colors.textPrimary
                         )

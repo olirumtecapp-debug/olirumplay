@@ -3,35 +3,38 @@ package com.olirum.player.ui.theme
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-// Paleta Oficial Premium Light OlirumPlay
-val OlirumWhite = Color(0xFFFFFFFF)
-val OlirumSurfaceLight = Color(0xFFF6F8FC)
-val OlirumBackgroundLight = Color(0xFFF6F8FC)
-val OlirumCardLight = Color(0xFFFFFFFF)
-val OlirumTextPrimary = Color(0xFF19212E)
-val OlirumTextSecondary = Color(0xFF697586)
-val OlirumDivider = Color(0xFFE5E9F2)
-val OlirumBorderLight = Color(0xFFE5E9F2)
+// Paleta Oficial OlirumPlay Dark Premium
+val OlirumBackground = Color(0xFF070B14)
+val OlirumBackgroundSecondary = Color(0xFF0D1523)
+val OlirumSurface = Color(0xFF111C2D)
+val OlirumCard = Color(0xFF111C2D)
+val OlirumBorder = Color(0xFF1D2B40)
 
-// Paleta Oficial Premium Dark OlirumPlay
-val OlirumBackgroundDark = Color(0xFF0B101B)
-val OlirumSurfaceDark = Color(0xFF121826)
-val OlirumCardDark = Color(0xFF182032)
-val OlirumTextPrimaryDark = Color(0xFFF8FAFC)
-val OlirumTextSecondaryDark = Color(0xFF94A3B8)
-val OlirumBorderDark = Color(0xFF1E293B)
+// Acentos Neon da Marca
+val OlirumCyan = Color(0xFF00E5D4)
+val OlirumBlue = Color(0xFF008BFF)
+val OlirumPurple = Color(0xFF8B5CF6)
+val OlirumPink = Color(0xFFFF3DAD)
+val OlirumMint = Color(0xFF00E5D4)
 
-// Degradê da Marca OlirumPlay (Equalizador Musical)
-val OlirumMint = Color(0xFF10DDB5)
-val OlirumCyan = Color(0xFF08CFF0)
-val OlirumBlue = Color(0xFF1677FF)
-val OlirumPurple = Color(0xFF713DFF)
-val OlirumMagenta = Color(0xFFE82EEA)
+// Tipografia e Contrastes
+val OlirumTextPrimary = Color(0xFFF8FAFC)
+val OlirumTextSecondary = Color(0xFFA5B2C5)
+val OlirumTextDisabled = Color(0xFF475569)
 
+// Gradientes Discretos e Elegantes
 val OlirumGradientBrush = Brush.horizontalGradient(
-    colors = listOf(OlirumMint, OlirumCyan, OlirumBlue, OlirumPurple, OlirumMagenta)
+    colors = listOf(OlirumCyan, OlirumBlue, OlirumPurple, OlirumPink)
 )
 
-val OlirumPlayButtonBrush = Brush.horizontalGradient(
-    colors = listOf(OlirumCyan, OlirumBlue, OlirumPurple)
+val OlirumAccentBrush = Brush.linearGradient(
+    colors = listOf(OlirumCyan, OlirumBlue)
+)
+
+val OlirumButtonBrush = Brush.horizontalGradient(
+    colors = listOf(OlirumCyan, OlirumBlue)
+)
+
+val OlirumCardGradient = Brush.verticalGradient(
+    colors = listOf(Color(0xFF162338), Color(0xFF0D1523))
 )

@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.olirum.player.model.Track
+import com.olirum.player.ui.components.CoverArtSearchDialog
 import com.olirum.player.ui.components.formatDuration
 import com.olirum.player.ui.theme.*
 import com.olirum.player.ui.viewmodel.MainPlayerViewModel
@@ -48,13 +48,25 @@ fun FullPlayerScreen(
     }
 
     val track = currentTrack!!
+    val isRadio = track.source == "radio"
+
     var isDraggingSlider by remember { mutableStateOf(false) }
     var sliderPosition by remember { mutableFloatStateOf(0f) }
+    var showCoverSearchDialog by remember { mutableStateOf(false) }
 
     val progress = if (isDraggingSlider) {
         sliderPosition
     } else {
         if (durationMs > 0) (currentPositionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) else 0f
+    }
+
+    if (showCoverSearchDialog && !isRadio) {
+        CoverArtSearchDialog(
+            track = track,
+            onDismiss = { showCoverSearchDialog = false },
+            onSearch = { q -> viewModel.searchCoverCandidates(q) },
+            onSelectCover = { url -> viewModel.setManualCover(track, url) }
+        )
     }
 
     Surface(
@@ -78,7 +90,7 @@ fun FullPlayerScreen(
             ) {
                 IconButton(onClick = onDismiss) {
                     Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
+                        imageVector = Icons.Rounded.KeyboardArrowDown,
                         contentDescription = "Fechar",
                         tint = colors.textPrimary,
                         modifier = Modifier.size(32.dp)
@@ -90,10 +102,10 @@ fun FullPlayerScreen(
                     modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
                 ) {
                     Text(
-                        text = "TOCANDO AGORA",
+                        text = if (isRadio) "RÁDIO AO VIVO" else "TOCANDO AGORA",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = OlirumBlue,
+                        color = OlirumCyan,
                         letterSpacing = 1.sp,
                         maxLines = 1,
                         softWrap = false
@@ -108,13 +120,17 @@ fun FullPlayerScreen(
                     )
                 }
 
-                IconButton(onClick = onNavigateToLyrics) {
-                    Icon(
-                        imageVector = Icons.Default.Mic,
-                        contentDescription = "Ver Letras",
-                        tint = OlirumBlue,
-                        modifier = Modifier.size(24.dp)
-                    )
+                if (!isRadio) {
+                    IconButton(onClick = onNavigateToLyrics) {
+                        Icon(
+                            imageVector = Icons.Rounded.Mic,
+                            contentDescription = "Ver Letras",
+                            tint = OlirumCyan,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                } else {
+                    Spacer(modifier = Modifier.size(48.dp))
                 }
             }
 
@@ -124,7 +140,10 @@ fun FullPlayerScreen(
                     .size(280.dp)
                     .shadow(16.dp, RoundedCornerShape(24.dp))
                     .clip(RoundedCornerShape(24.dp))
-                    .background(colors.card),
+                    .background(colors.card)
+                    .clickable(enabled = !isRadio) {
+                        showCoverSearchDialog = true
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 if (!track.artworkUri.isNullOrEmpty()) {
@@ -139,15 +158,45 @@ fun FullPlayerScreen(
                     )
                 } else {
                     Icon(
-                        imageVector = Icons.Default.MusicNote,
+                        imageVector = if (isRadio) Icons.Rounded.Radio else Icons.Rounded.MusicNote,
                         contentDescription = null,
-                        tint = OlirumBlue,
+                        tint = if (isRadio) OlirumCyan else OlirumBlue,
                         modifier = Modifier.size(90.dp)
                     )
                 }
+
+                if (!isRadio) {
+                    // Badge sutil para trocar capa
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(10.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.Black.copy(alpha = 0.6f))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Rounded.Image,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Alterar Capa",
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                        }
+                    }
+                }
             }
 
-            // Título, Artista e Botão Favorito (Zero quebra de linha)
+            // Título, Artista e Botão Favorito
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -156,7 +205,7 @@ fun FullPlayerScreen(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = track.title,
-                        fontSize = 19.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = colors.textPrimary,
                         maxLines = 1,
@@ -176,7 +225,7 @@ fun FullPlayerScreen(
 
                 IconButton(onClick = { viewModel.toggleFavorite(track) }) {
                     Icon(
-                        imageVector = if (track.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        imageVector = if (track.isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                         contentDescription = "Favoritar",
                         tint = if (track.isFavorite) OlirumMagenta else colors.textSecondary,
                         modifier = Modifier.size(26.dp)
@@ -184,22 +233,20 @@ fun FullPlayerScreen(
                 }
             }
 
-            val isRadio = track.source == "radio"
-
             // Seekbar ou Indicador AO VIVO
             if (isRadio) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
+                        .clip(RoundedCornerShape(12.dp))
                         .background(Color(0xFFE53935).copy(alpha = 0.15f))
-                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(8.dp)
+                            .size(10.dp)
                             .clip(CircleShape)
                             .background(Color(0xFFE53935))
                     )
@@ -227,7 +274,7 @@ fun FullPlayerScreen(
                             isDraggingSlider = false
                         },
                         colors = SliderDefaults.colors(
-                            thumbColor = OlirumBlue,
+                            thumbColor = OlirumCyan,
                             activeTrackColor = OlirumCyan,
                             inactiveTrackColor = colors.border
                         ),
@@ -263,22 +310,28 @@ fun FullPlayerScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Aleatório
-                IconButton(onClick = { viewModel.toggleShuffle() }) {
+                // Aleatório (desativado para rádio)
+                IconButton(
+                    onClick = { viewModel.toggleShuffle() },
+                    enabled = !isRadio
+                ) {
                     Icon(
-                        imageVector = Icons.Default.Shuffle,
+                        imageVector = Icons.Rounded.Shuffle,
                         contentDescription = "Aleatório",
-                        tint = if (isShuffle) OlirumBlue else colors.textSecondary,
+                        tint = if (!isRadio && isShuffle) OlirumCyan else colors.textSecondary.copy(alpha = if (isRadio) 0.3f else 0.7f),
                         modifier = Modifier.size(24.dp)
                     )
                 }
 
-                // Anterior
-                IconButton(onClick = { viewModel.skipPrevious() }) {
+                // Anterior (desativado para rádio)
+                IconButton(
+                    onClick = { viewModel.skipPrevious() },
+                    enabled = !isRadio
+                ) {
                     Icon(
-                        imageVector = Icons.Default.SkipPrevious,
+                        imageVector = Icons.Rounded.SkipPrevious,
                         contentDescription = "Anterior",
-                        tint = colors.textPrimary,
+                        tint = if (isRadio) colors.textSecondary.copy(alpha = 0.3f) else colors.textPrimary,
                         modifier = Modifier.size(34.dp)
                     )
                 }
@@ -286,34 +339,40 @@ fun FullPlayerScreen(
                 // Play / Pause (Botão Grande com Degradê Olirum)
                 Box(
                     modifier = Modifier
-                        .size(66.dp)
+                        .size(68.dp)
                         .clip(CircleShape)
                         .background(OlirumGradientBrush)
                         .clickable { viewModel.togglePlayPause() },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                         contentDescription = if (isPlaying) "Pausar" else "Tocar",
                         tint = Color.White,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-
-                // Próxima
-                IconButton(onClick = { viewModel.skipNext() }) {
-                    Icon(
-                        imageVector = Icons.Default.SkipNext,
-                        contentDescription = "Próxima",
-                        tint = colors.textPrimary,
                         modifier = Modifier.size(34.dp)
                     )
                 }
 
-                // Repetir
-                IconButton(onClick = { viewModel.toggleRepeat() }) {
-                    val repeatIcon = if (repeatMode == Player.REPEAT_MODE_ONE) Icons.Default.RepeatOne else Icons.Default.Repeat
-                    val repeatTint = if (repeatMode != Player.REPEAT_MODE_OFF) OlirumBlue else colors.textSecondary
+                // Próxima (desativado para rádio)
+                IconButton(
+                    onClick = { viewModel.skipNext() },
+                    enabled = !isRadio
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.SkipNext,
+                        contentDescription = "Próxima",
+                        tint = if (isRadio) colors.textSecondary.copy(alpha = 0.3f) else colors.textPrimary,
+                        modifier = Modifier.size(34.dp)
+                    )
+                }
+
+                // Repetir (desativado para rádio)
+                IconButton(
+                    onClick = { viewModel.toggleRepeat() },
+                    enabled = !isRadio
+                ) {
+                    val repeatIcon = if (repeatMode == Player.REPEAT_MODE_ONE) Icons.Rounded.RepeatOne else Icons.Rounded.Repeat
+                    val repeatTint = if (!isRadio && repeatMode != Player.REPEAT_MODE_OFF) OlirumCyan else colors.textSecondary.copy(alpha = if (isRadio) 0.3f else 0.7f)
                     Icon(
                         imageVector = repeatIcon,
                         contentDescription = "Repetir",
@@ -323,16 +382,20 @@ fun FullPlayerScreen(
                 }
             }
 
-            // Rodapé com atalho rápido de letra
-            OutlinedButton(
-                onClick = onNavigateToLyrics,
-                shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = OlirumBlue),
-                modifier = Modifier.padding(bottom = 6.dp)
-            ) {
-                Icon(Icons.Default.Lyrics, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Acompanhar Letra Sincronizada", fontSize = 13.sp, maxLines = 1, softWrap = false)
+            // Rodapé
+            if (!isRadio) {
+                OutlinedButton(
+                    onClick = onNavigateToLyrics,
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = OlirumCyan),
+                    modifier = Modifier.padding(bottom = 6.dp)
+                ) {
+                    Icon(Icons.Rounded.Lyrics, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Acompanhar Letra Sincronizada", fontSize = 13.sp, maxLines = 1, softWrap = false)
+                }
+            } else {
+                Spacer(modifier = Modifier.height(10.dp))
             }
         }
     }
