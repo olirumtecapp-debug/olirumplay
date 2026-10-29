@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -28,15 +29,22 @@ public class OlirumPlayerWidget extends AppWidgetProvider {
     public static final String ACTION_WIDGET_PREV = "com.olirum.player.ACTION_WIDGET_PREV";
     public static final String ACTION_WIDGET_NEXT = "com.olirum.player.ACTION_WIDGET_NEXT";
 
-    private static String sCurrentTitle = "OlirumPlay";
-    private static String sCurrentArtist = "Toque para ouvir música";
-    private static boolean sIsPlaying = false;
-    private static String sArtworkUri = null;
+    private static final String PREFS_NAME = "olirum_widget_prefs";
+    private static final String KEY_TITLE = "widget_title";
+    private static final String KEY_ARTIST = "widget_artist";
+    private static final String KEY_IS_PLAYING = "widget_is_playing";
+    private static final String KEY_ARTWORK = "widget_artwork";
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        SharedPreferences sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String title = sp.getString(KEY_TITLE, "OlirumPlay");
+        String artist = sp.getString(KEY_ARTIST, "Toque para ouvir música");
+        boolean isPlaying = sp.getBoolean(KEY_IS_PLAYING, false);
+        String artworkUri = sp.getString(KEY_ARTWORK, null);
+
         for (int appWidgetId : appWidgetIds) {
-            updateWidgetUI(context, appWidgetManager, appWidgetId, sCurrentTitle, sCurrentArtist, sIsPlaying, sArtworkUri);
+            updateWidgetUI(context, appWidgetManager, appWidgetId, title, artist, isPlaying, artworkUri);
         }
     }
 
@@ -44,51 +52,79 @@ public class OlirumPlayerWidget extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
 
-        String action = intent.getAction();
+        String action = intent != null ? intent.getAction() : null;
         if (ACTION_WIDGET_PLAY_PAUSE.equals(action) ||
             ACTION_WIDGET_PREV.equals(action) ||
             ACTION_WIDGET_NEXT.equals(action)) {
 
-            SessionToken sessionToken = new SessionToken(context, new ComponentName(context, OlirumPlaybackService.class));
-            ListenableFuture<MediaController> controllerFuture = new MediaController.Builder(context, sessionToken).buildAsync();
+            // goAsync garante que o Android não destrua o processo antes do callback assíncrono terminar
+            final PendingResult pendingResult = goAsync();
 
-            controllerFuture.addListener(() -> {
-                try {
-                    MediaController controller = controllerFuture.get();
-                    if (ACTION_WIDGET_PLAY_PAUSE.equals(action)) {
-                        if (controller.isPlaying()) {
-                            controller.pause();
-                        } else {
-                            controller.play();
+            try {
+                SessionToken sessionToken = new SessionToken(context, new ComponentName(context, OlirumPlaybackService.class));
+                ListenableFuture<MediaController> controllerFuture = new MediaController.Builder(context, sessionToken).buildAsync();
+
+                controllerFuture.addListener(() -> {
+                    try {
+                        MediaController controller = controllerFuture.get();
+                        if (ACTION_WIDGET_PLAY_PAUSE.equals(action)) {
+                            if (controller.isPlaying()) {
+                                controller.pause();
+                            } else if (controller.getMediaItemCount() > 0) {
+                                controller.play();
+                            } else {
+                                // Se não houver itens na fila, abre a tela principal para reproduzir
+                                Intent openIntent = new Intent(context, MainActivity.class);
+                                openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                                context.startActivity(openIntent);
+                            }
+                        } else if (ACTION_WIDGET_PREV.equals(action)) {
+                            if (controller.getCurrentPosition() > 3000) {
+                                controller.seekTo(0);
+                            } else if (controller.hasPreviousMediaItem()) {
+                                controller.seekToPreviousMediaItem();
+                            }
+                        } else if (ACTION_WIDGET_NEXT.equals(action)) {
+                            if (controller.hasNextMediaItem()) {
+                                controller.seekToNextMediaItem();
+                            }
                         }
-                    } else if (ACTION_WIDGET_PREV.equals(action)) {
-                        if (controller.getCurrentPosition() > 3000) {
-                            controller.seekTo(0);
-                        } else {
-                            controller.seekToPreviousMediaItem();
-                        }
-                    } else if (ACTION_WIDGET_NEXT.equals(action)) {
-                        controller.seekToNextMediaItem();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        pendingResult.finish();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }, MoreExecutors.directExecutor());
+                }, MoreExecutors.directExecutor());
+            } catch (Exception e) {
+                e.printStackTrace();
+                pendingResult.finish();
+            }
         }
     }
 
     public static void updateAllWidgets(Context context, String title, String artist, boolean isPlaying, String artworkUri) {
-        sCurrentTitle = (title != null && !title.isEmpty()) ? title : "OlirumPlay";
-        sCurrentArtist = (artist != null && !artist.isEmpty()) ? artist : "Toque para ouvir música";
-        sIsPlaying = isPlaying;
-        sArtworkUri = artworkUri;
+        String finalTitle = (title != null && !title.trim().isEmpty()) ? title : "OlirumPlay";
+        String finalArtist = (artist != null && !artist.trim().isEmpty()) ? artist : "Toque para ouvir música";
+
+        // Persiste o estado mais recente para reboots ou recriação do widget
+        try {
+            SharedPreferences sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            sp.edit()
+                .putString(KEY_TITLE, finalTitle)
+                .putString(KEY_ARTIST, finalArtist)
+                .putBoolean(KEY_IS_PLAYING, isPlaying)
+                .putString(KEY_ARTWORK, artworkUri)
+                .apply();
+        } catch (Exception ignored) {}
 
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         ComponentName widgetComponent = new ComponentName(context, OlirumPlayerWidget.class);
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(widgetComponent);
 
-        for (int id : appWidgetIds) {
-            updateWidgetUI(context, appWidgetManager, id, sCurrentTitle, sCurrentArtist, sIsPlaying, sArtworkUri);
+        if (appWidgetIds != null) {
+            for (int id : appWidgetIds) {
+                updateWidgetUI(context, appWidgetManager, id, finalTitle, finalArtist, isPlaying, artworkUri);
+            }
         }
     }
 
@@ -104,6 +140,7 @@ public class OlirumPlayerWidget extends AppWidgetProvider {
 
         // Click no app principal
         Intent appIntent = new Intent(context, MainActivity.class);
+        appIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingApp = PendingIntent.getActivity(
                 context, 0, appIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
@@ -116,7 +153,7 @@ public class OlirumPlayerWidget extends AppWidgetProvider {
         Intent playIntent = new Intent(context, OlirumPlayerWidget.class);
         playIntent.setAction(ACTION_WIDGET_PLAY_PAUSE);
         PendingIntent pendingPlay = PendingIntent.getBroadcast(
-                context, 1, playIntent,
+                context, 101, playIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
         views.setOnClickPendingIntent(R.id.widget_play, pendingPlay);
@@ -125,7 +162,7 @@ public class OlirumPlayerWidget extends AppWidgetProvider {
         Intent prevIntent = new Intent(context, OlirumPlayerWidget.class);
         prevIntent.setAction(ACTION_WIDGET_PREV);
         PendingIntent pendingPrev = PendingIntent.getBroadcast(
-                context, 2, prevIntent,
+                context, 102, prevIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
         views.setOnClickPendingIntent(R.id.widget_prev, pendingPrev);
@@ -134,15 +171,15 @@ public class OlirumPlayerWidget extends AppWidgetProvider {
         Intent nextIntent = new Intent(context, OlirumPlayerWidget.class);
         nextIntent.setAction(ACTION_WIDGET_NEXT);
         PendingIntent pendingNext = PendingIntent.getBroadcast(
-                context, 3, nextIntent,
+                context, 103, nextIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
         views.setOnClickPendingIntent(R.id.widget_next, pendingNext);
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
 
-        // Carrega capa assincronamente via decodeStream padrão
-        if (artworkUri != null && !artworkUri.isEmpty()) {
+        // Carrega capa assincronamente
+        if (artworkUri != null && !artworkUri.trim().isEmpty()) {
             new Thread(() -> {
                 try {
                     Uri uri = Uri.parse(artworkUri);
@@ -156,6 +193,8 @@ public class OlirumPlayerWidget extends AppWidgetProvider {
                     } else if (artworkUri.startsWith("http://") || artworkUri.startsWith("https://")) {
                         URL url = new URL(artworkUri);
                         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        conn.setConnectTimeout(3000);
+                        conn.setReadTimeout(3000);
                         conn.setDoInput(true);
                         conn.connect();
                         try (InputStream is = conn.getInputStream()) {
