@@ -39,14 +39,14 @@ jobs:
           mkdir -p release-apk
           # Usar o APK de Release oficial assinado permanentemente com v1 e v2
           if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
-            cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay-v1.10.0.apk
+            cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay-v1.11.0.apk
             cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay.apk
-            cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay-v1.10.0.apk
+            cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay-v1.11.0.apk
             cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay.apk
           else
-            cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.10.0.apk
+            cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.11.0.apk
             cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay.apk
-            cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.10.0.apk
+            cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.11.0.apk
             cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay.apk
           fi
 
@@ -81,6 +81,6 @@ jobs:
               - Botões de reprodução rápida e aleatória diretamente em cada card de pasta da biblioteca.
             - 🔑 **Assinatura Universal Permanente v1 + v2:** Atualização contínua sem erro de incompatibilidade.
           files: |
-            release-apk/OlirumPlay-v1.10.0.apk
+            release-apk/OlirumPlay-v1.11.0.apk
             release-apk/OlirumPlay.apk
           token: ${{ secrets.GITHUB_TOKEN }}
