@@ -235,7 +235,8 @@ class RadioRepository {
             gradientColors = listOf(0xFF008BFF, 0xFF00E5D4),
             iconName = "Radio",
             drawableResName = "genre_sertanejo",
-            excludedKeywords = listOf("rock", "metal", "techno", "classical", "hip hop", "electronic")
+            excludedKeywords = listOf("rock", "metal", "techno", "classical", "hip hop", "electronic", "dance", "pop rock", "punk", "gospel", "evangelica", "reggae"),
+            countryCode = "BR"
         ),
         RadioCategory(
             id = "mpb_bossa",
@@ -246,7 +247,8 @@ class RadioRepository {
             gradientColors = listOf(0xFF8B5CF6, 0xFF008BFF),
             iconName = "MusicNote",
             drawableResName = "genre_mpb_bossa",
-            excludedKeywords = listOf("heavy metal", "techno", "punk", "death metal")
+            excludedKeywords = listOf("heavy metal", "techno", "punk", "death metal", "rock", "dance"),
+            countryCode = "BR"
         ),
         RadioCategory(
             id = "samba_pagode",
@@ -257,7 +259,8 @@ class RadioRepository {
             gradientColors = listOf(0xFFFF3DAD, 0xFF008BFF),
             iconName = "MusicNote",
             drawableResName = "genre_samba_pagode",
-            excludedKeywords = listOf("heavy metal", "techno", "classical", "punk")
+            excludedKeywords = listOf("heavy metal", "techno", "classical", "punk", "rock", "metal"),
+            countryCode = "BR"
         ),
         RadioCategory(
             id = "gospel",
@@ -280,6 +283,61 @@ class RadioRepository {
             iconName = "Equalizer",
             drawableResName = "genre_eletronica",
             excludedKeywords = listOf("classical", "sertanejo", "country", "pagode", "samba", "rock")
+        ),
+        RadioCategory(
+            id = "lendas_tributos",
+            name = "Lendas & Tributos 24h",
+            subtitle = "Michael Jackson, Queen, Beatles & Elvis",
+            primaryTag = "tribute",
+            tags = listOf("michael jackson", "queen", "beatles", "elvis", "tribute", "discography", "madonna", "bob marley", "roberto carlos"),
+            gradientColors = listOf(0xFFFF3DAD, 0xFF8B5CF6),
+            iconName = "Star",
+            drawableResName = "genre_lendas_tributos",
+            excludedKeywords = listOf("talk", "news", "heavy metal", "death metal")
+        ),
+        RadioCategory(
+            id = "meditacao",
+            name = "Meditação & Yoga",
+            subtitle = "Sinos Tibetanos, Mantras & Zen",
+            primaryTag = "meditation",
+            tags = listOf("meditation", "zen", "yoga", "ambient", "spa", "mindfulness", "tibetan"),
+            gradientColors = listOf(0xFF00E5D4, 0xFF008BFF),
+            iconName = "Spa",
+            drawableResName = "genre_meditacao",
+            excludedKeywords = listOf("rock", "pop", "dance", "rap", "metal", "talk", "news", "energetic", "reggae", "sertanejo")
+        ),
+        RadioCategory(
+            id = "natureza_sono",
+            name = "Sons da Natureza & Dormir",
+            subtitle = "Chuva, Ondas do Mar & Floresta",
+            primaryTag = "nature",
+            tags = listOf("nature", "sleep", "rain", "whitenoise", "ocean", "forest", "ambient sleep"),
+            gradientColors = listOf(0xFF008BFF, 0xFF00E5D4),
+            iconName = "Bedtime",
+            drawableResName = "genre_natureza_sono",
+            excludedKeywords = listOf("rock", "pop", "dance", "rap", "metal", "talk", "news", "drum", "beat", "techno")
+        ),
+        RadioCategory(
+            id = "lofi_estudo",
+            name = "Lo-Fi Foco & Estudo",
+            subtitle = "Chillhop, Beats Suaves & Concentração",
+            primaryTag = "lofi",
+            tags = listOf("lofi", "chillhop", "lo-fi", "study", "chill beats"),
+            gradientColors = listOf(0xFF8B5CF6, 0xFFFF3DAD),
+            iconName = "Headphones",
+            drawableResName = "genre_lofi_estudo",
+            excludedKeywords = listOf("rock", "metal", "heavy metal", "death metal", "talk", "news", "hardcore")
+        ),
+        RadioCategory(
+            id = "acustico",
+            name = "Acústico Suave & Café",
+            subtitle = "Violão Acústico, Piano & Chillout",
+            primaryTag = "acoustic",
+            tags = listOf("acoustic", "acoustic guitar", "violao", "piano", "chillout", "coffee"),
+            gradientColors = listOf(0xFF00E5D4, 0xFF8B5CF6),
+            iconName = "MusicNote",
+            drawableResName = "genre_acustico",
+            excludedKeywords = listOf("electronic", "dance", "techno", "metal", "heavy metal", "rap", "hip hop")
         )
     )
 
@@ -529,6 +587,140 @@ class RadioRepository {
             countryCode = "BR",
             language = "Português",
             votes = 560
+        ),
+        RadioStation(
+            id = "curated_metropolitana_sertanejo",
+            name = "Metropolitana Sertanejo FM",
+            genre = "Sertanejo",
+            streamUrl = "https://ice.fabricahost.com.br/metrospsertanejo",
+            artworkUrl = null,
+            location = "São Paulo - BR",
+            description = "O melhor do sertanejo universitário e modão consagrado.",
+            bitrate = "128 kbps",
+            countryCode = "BR",
+            language = "Português",
+            votes = 410
+        ),
+
+        // === LENDAS DA MÚSICA & TRIBUTOS 24H ===
+        RadioStation(
+            id = "curated_michael_jackson",
+            name = "Exclusively Michael Jackson",
+            genre = "Lendas & Tributos 24h",
+            streamUrl = "https://streaming.exclusive.radio/er/michaeljackson/icecast.audio",
+            artworkUrl = null,
+            location = "Internacional",
+            description = "Tributo 24 horas ao vivo com a discografia completa do Rei do Pop.",
+            bitrate = "128 kbps",
+            countryCode = "US",
+            language = "Inglês",
+            votes = 1150
+        ),
+        RadioStation(
+            id = "curated_beatles",
+            name = "Exclusively The Beatles",
+            genre = "Lendas & Tributos 24h",
+            streamUrl = "http://streaming.exclusive.radio/er/beatles/icecast.audio",
+            artworkUrl = null,
+            location = "Internacional",
+            description = "As maiores obras do quarteto de Liverpool 24 horas por dia.",
+            bitrate = "128 kbps",
+            countryCode = "US",
+            language = "Inglês",
+            votes = 980
+        ),
+        RadioStation(
+            id = "curated_queen",
+            name = "Exclusive Radio - Queen",
+            genre = "Lendas & Tributos 24h",
+            streamUrl = "https://streaming.exclusive.radio/er/queen/icecast.audio",
+            artworkUrl = null,
+            location = "Internacional",
+            description = "Freddie Mercury e Queen com os hinos do rock mundial sem parar.",
+            bitrate = "128 kbps",
+            countryCode = "US",
+            language = "Inglês",
+            votes = 890
+        ),
+        RadioStation(
+            id = "curated_elvis",
+            name = "Always Elvis Radio",
+            genre = "Lendas & Tributos 24h",
+            streamUrl = "http://radioserver.dk/alwayselvisradio",
+            artworkUrl = null,
+            location = "Dinamarca",
+            description = "O Rei do Rock n Roll em transmissão contínua com gravações históricas.",
+            bitrate = "256 kbps",
+            countryCode = "DK",
+            language = "Inglês",
+            votes = 740
+        ),
+
+        // === BEM-ESTAR, MEDITAÇÃO & FOCO ===
+        RadioStation(
+            id = "curated_meditation_lake",
+            name = "Music Lake - Meditation & Chill",
+            genre = "Meditação & Yoga",
+            streamUrl = "http://nap.casthost.net:8626/stream",
+            artworkUrl = null,
+            location = "Estados Unidos",
+            description = "Música serena para meditação guiada, relaxamento profundo e paz.",
+            bitrate = "128 kbps",
+            countryCode = "US",
+            language = "Inglês",
+            votes = 820
+        ),
+        RadioStation(
+            id = "curated_intra_nature",
+            name = "Intra Nature - Spa & Zen",
+            genre = "Meditação & Yoga",
+            streamUrl = "http://nap.casthost.net:8793/stream",
+            artworkUrl = null,
+            location = "Estados Unidos",
+            description = "Sinos tibetanos, frequências harmônicas e ambiente zen para yoga.",
+            bitrate = "128 kbps",
+            countryCode = "US",
+            language = "Inglês",
+            votes = 650
+        ),
+        RadioStation(
+            id = "curated_nature_rain",
+            name = "Nature Radio - Chuva & Tempestade",
+            genre = "Sons da Natureza & Dormir",
+            streamUrl = "https://maggie.torontocast.com:2020/stream/natureradiorain",
+            artworkUrl = null,
+            location = "Canadá",
+            description = "Chuva relaxante, som da água e ambiente natural para sono profundo.",
+            bitrate = "128 kbps",
+            countryCode = "CA",
+            language = "Instrumental",
+            votes = 910
+        ),
+        RadioStation(
+            id = "curated_lofi_247",
+            name = "Lofi 24/7 Chill Beats",
+            genre = "Lo-Fi Foco & Estudo",
+            streamUrl = "http://usa9.fastcast4u.com/proxy/jamz?mp=/1",
+            artworkUrl = null,
+            location = "Estados Unidos",
+            description = "Batidas lentas de Lo-Fi Hip Hop para leitura, trabalho e foco total.",
+            bitrate = "128 kbps",
+            countryCode = "US",
+            language = "Instrumental",
+            votes = 1350
+        ),
+        RadioStation(
+            id = "curated_acoustic_guitar",
+            name = "Radio Caprice - Violão Acústico",
+            genre = "Acústico Suave & Café",
+            streamUrl = "http://79.120.39.202:8000/acousticguitar",
+            artworkUrl = null,
+            location = "Rússia",
+            description = "Dedilhado suave de violão acústico e piano para relaxar.",
+            bitrate = "320 kbps",
+            countryCode = "RU",
+            language = "Instrumental",
+            votes = 780
         )
     )
 
@@ -557,21 +749,39 @@ class RadioRepository {
         }
 
         // 2. Consulta a API real da Radio Browser para a primaryTag e tags secundárias
-        for (tag in category.tags.take(3)) {
+        val tagsToFetch = if (category.id == "lendas_tributos") category.tags.take(6) else category.tags.take(3)
+        for (tag in tagsToFetch) {
             try {
                 val api = getApi()
-                val dtoList = api.searchStations(
-                    tag = tag,
-                    hideBroken = true,
-                    order = "votes",
-                    reverse = true,
-                    limit = 35
-                )
+                val dtoList = if (category.id == "lendas_tributos") {
+                    api.searchStations(
+                        name = tag,
+                        hideBroken = true,
+                        order = "votes",
+                        reverse = true,
+                        limit = 15
+                    )
+                } else {
+                    api.searchStations(
+                        tag = tag,
+                        countryCode = category.countryCode,
+                        hideBroken = true,
+                        order = "votes",
+                        reverse = true,
+                        limit = 35
+                    )
+                }
 
                 for (dto in dtoList) {
                     val uuid = dto.stationUuid ?: continue
                     val streamUrl = dto.urlResolved ?: dto.url ?: continue
                     if (streamUrl.isBlank() || seenUuids.contains(uuid)) continue
+
+                    // Validação de país para categorias estritamente nacionais (Sertanejo, MPB, Samba)
+                    if (category.countryCode != null && !dto.countryCode.isNullOrBlank() &&
+                        !dto.countryCode.equals(category.countryCode, ignoreCase = true)) {
+                        continue
+                    }
 
                     // FILTRAGEM RIGOROSA DE GÊNERO:
                     val stName = dto.name ?: ""

@@ -9,7 +9,8 @@ data class RadioCategory(
     val gradientColors: List<Long>,
     val iconName: String = "Radio",
     val drawableResName: String? = null,
-    val excludedKeywords: List<String> = emptyList()
+    val excludedKeywords: List<String> = emptyList(),
+    val countryCode: String? = null
 )
 
 data class RadioStation(

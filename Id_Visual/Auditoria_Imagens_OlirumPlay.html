@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OlirumPlay — Painel de Auditoria de Imagens e Identidade Visual</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    :root {
+      --bg: #070B14;
+      --bg-secondary: #0D1523;
+      --surface: #111C2D;
+      --surface-hover: #16243A;
+      --card: #111C2D;
+      --border: #1D2B40;
+      --border-glow: rgba(0, 229, 212, 0.3);
+      --cyan: #00E5D4;
+      --blue: #008BFF;
+      --purple: #8B5CF6;
+      --pink: #FF3DAD;
+      --green: #10B981;
+      --orange: #F59E0B;
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-disabled: #475569;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      padding-bottom: 60px;
+      line-height: 1.5;
+    }
+
+    header {
+      background: linear-gradient(180deg, rgba(13, 21, 35, 0.95) 0%, rgba(7, 11, 20, 0.85) 100%);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 18px 28px;
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--cyan), var(--blue), var(--purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(0, 229, 212, 0.35);
+    }
+
+    .brand-logo svg {
+      width: 24px;
+      height: 24px;
+      fill: #070B14;
+    }
+
+    .brand-title h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #FFFFFF 0%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-title p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .stats-card {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 10px 18px;
+      border-radius: 14px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--cyan);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+    }
+
+    .progress-bar-container {
+      width: 130px;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-secondary);
+      border-radius: 99px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--purple));
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 9px 15px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, var(--cyan), var(--blue));
+      color: #070B14;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 0 15px rgba(0, 229, 212, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--cyan);
+      background: var(--surface-hover);
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 28px auto 0;
+      padding: 0 24px;
+    }
+
+    .instructions-box {
+      background: linear-gradient(135deg, rgba(0, 229, 212, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+      border: 1px solid rgba(0, 229, 212, 0.25);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 26px;
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+    }
+
+    .instructions-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .instructions-text h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--cyan);
+      margin-bottom: 6px;
+    }
+
+    .instructions-text p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .instructions-text code {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 7px;
+      border-radius: 6px;
+      color: var(--cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+      background: var(--bg-secondary);
+      padding: 12px 18px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-secondary);
+      padding: 7px 14px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background: var(--surface);
+    }
+
+    .tab-btn.active {
+      background: var(--surface);
+      color: var(--cyan);
+      border-color: rgba(0, 229, 212, 0.3);
+      box-shadow: 0 0 10px rgba(0, 229, 212, 0.15);
+    }
+
+    .search-box {
+      position: relative;
+      min-width: 260px;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 14px 8px 36px;
+      color: var(--text-primary);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--cyan);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      pointer-events: none;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 22px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .card.completed {
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    .card-header {
+      padding: 16px 18px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .card-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .badge-category {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      width: fit-content;
+    }
+
+    .badge-genre {
+      background: rgba(0, 229, 212, 0.15);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 229, 212, 0.3);
+    }
+
+    .badge-shortcut {
+      background: rgba(0, 139, 255, 0.15);
+      color: var(--blue);
+      border: 1px solid rgba(0, 139, 255, 0.3);
+    }
+
+    .badge-banner {
+      background: rgba(255, 61, 173, 0.15);
+      color: var(--pink);
+      border: 1px solid rgba(255, 61, 173, 0.3);
+    }
+
+    .badge-bg {
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--purple);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .card-filename {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--cyan);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 99px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .status-pending {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--orange);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .status-done {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .card-preview-area {
+      position: relative;
+      background: #05080E;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .card-preview-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: none;
+    }
+
+    .card-preview-img.visible {
+      display: block;
+    }
+
+    .dropzone-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(5, 8, 14, 0.7);
+      transition: all 0.2s;
+    }
+
+    .card-preview-img.visible ~ .dropzone-overlay {
+      background: rgba(5, 8, 14, 0.85);
+      opacity: 0;
+    }
+
+    .card-preview-area:hover .dropzone-overlay {
+      opacity: 1;
+    }
+
+    .dropzone-icon {
+      font-size: 32px;
+      color: var(--cyan);
+      opacity: 0.8;
+    }
+
+    .dropzone-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .dropzone-text span {
+      color: var(--cyan);
+      text-decoration: underline;
+    }
+
+    .dropzone-hint {
+      font-size: 11px;
+      color: var(--text-disabled);
+    }
+
+    .card-body {
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .prompt-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+    }
+
+    .prompt-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #E2E8F0;
+      max-height: 90px;
+      overflow-y: auto;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      user-select: all;
+    }
+
+    .prompt-box::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .prompt-box::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    .card-footer {
+      padding: 12px 18px 16px;
+      display: flex;
+      gap: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .btn-copy {
+      flex: 1;
+      background: rgba(0, 229, 212, 0.1);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 229, 212, 0.3);
+      justify-content: center;
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    .btn-copy:hover {
+      background: var(--cyan);
+      color: #070B14;
+    }
+
+    .btn-copy.copied {
+      background: var(--green);
+      color: #070B14;
+      border-color: var(--green);
+    }
+
+    .btn-paste {
+      flex: 1;
+      background: linear-gradient(90deg, rgba(0, 229, 212, 0.2), rgba(0, 139, 255, 0.2));
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      justify-content: center;
+      padding: 8px 12px;
+      font-size: 12px;
+      box-shadow: 0 0 10px rgba(0, 229, 212, 0.15);
+    }
+
+    .btn-paste:hover {
+      background: linear-gradient(90deg, var(--cyan), var(--blue));
+      color: #070B14;
+      box-shadow: 0 0 16px rgba(0, 229, 212, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .dropzone-paste-btn {
+      background: linear-gradient(90deg, var(--cyan), var(--blue));
+      color: #070B14;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      box-shadow: 0 0 15px rgba(0, 229, 212, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .dropzone-paste-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(0, 229, 212, 0.6);
+    }
+
+    .btn-download {
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--purple);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      padding: 8px 12px;
+      font-size: 12px;
+      display: none;
+    }
+
+    .btn-download.visible {
+      display: inline-flex;
+    }
+
+    .btn-download:hover {
+      background: var(--purple);
+      color: #FFFFFF;
+    }
+
+    .btn-remove {
+      background: rgba(239, 68, 68, 0.1);
+      color: #EF4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 8px 10px;
+      font-size: 12px;
+      display: none;
+    }
+
+    .btn-remove.visible {
+      display: inline-flex;
+    }
+
+    .hidden-file-input {
+      display: none;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface);
+      color: var(--text-primary);
+      border: 1px solid var(--cyan);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 229, 212, 0.3);
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+      .controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .search-box {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-content">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+          </svg>
+        </div>
+        <div class="brand-title">
+          <h1>OlirumPlay — Auditoria de Imagens</h1>
+          <p>Identidade Visual Vetorial Clean & Colorida — Pessoas conectadas à música, ondas fluidas e estética vibrante</p>
+        </div>
+      </div>
+
+      <div class="stats-card">
+        <div class="stat-item">
+          <span class="stat-value" id="statCompleted">0</span>
+          <span class="stat-label">Concluídas</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value" id="statPending">0</span>
+          <span class="stat-label">Pendentes</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressBar"></div>
+          </div>
+          <span class="stat-label" style="margin-top: 4px; display: block;" id="statPercentage">0%</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-primary" onclick="downloadAllZip()" style="background: linear-gradient(90deg, var(--purple), var(--pink)); color: white; border: none;">📦 Baixar Pacote ZIP</button>
+        <button class="btn btn-primary" onclick="exportData()" style="font-weight: 700;">💾 Exportar Arquivo JSON</button>
+        <button class="btn btn-secondary" onclick="triggerImport()">📂 Restaurar</button>
+        <input type="file" id="backupInput" style="display: none;" accept=".json" onchange="importData(event)">
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- INSTRUCTIONS -->
+    <div class="instructions-box">
+      <div class="instructions-icon">💡</div>
+      <div class="instructions-text">
+        <h3>Como Utilizar Este Painel de Criação:</h3>
+        <p>
+          1. Clique em <strong>"Copiar Prompt IA"</strong> no card do gênero ou atalho desejado.<br>
+          2. Cole no seu gerador de imagens (Midjourney, ChatGPT / DALL-E 3, Leonardo AI ou Bing Image Creator).<br>
+          3. Copie a imagem gerada e <strong>aperte Ctrl + V</strong> dentro do card (ou clique no card para selecionar o arquivo salvo).<br>
+          4. O card salva o arquivo automaticamente no seu navegador e você pode baixar clicando em <strong>"Baixar Imagem"</strong> para a pasta <code>D:\PlayerMPro\Id_Visual\assets_app\</code>.
+        </p>
+      </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls-bar">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="setFilter('all')">Todos (<span id="countAll">0</span>)</button>
+        <button class="tab-btn" onclick="setFilter('genre')">Gêneros & Estilos (<span id="countGenre">0</span>)</button>
+        <button class="tab-btn" onclick="setFilter('shortcut')">Atalhos Principais (<span id="countShortcut">0</span>)</button>
+        <button class="tab-btn" onclick="setFilter('banner')">Banners & Destaques (<span id="countBanner">0</span>)</button>
+        <button class="tab-btn" onclick="setFilter('bg')">Backgrounds (<span id="countBg">0</span>)</button>
+        <button class="tab-btn" onclick="setFilter('pending')">⏳ Pendentes</button>
+        <button class="tab-btn" onclick="setFilter('completed')">✅ Concluídos</button>
+      </div>
+
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nome ou arquivo..." oninput="handleSearch()">
+      </div>
+    </div>
+
+    <!-- CARDS GRID -->
+    <div class="cards-grid" id="cardsGrid">
+      <!-- Injetado dinamicamente via JavaScript -->
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast">
+    <span>✅</span>
+    <span id="toastMessage">Texto copiado!</span>
+  </div>
+
+  <script>
+    // LISTA COMPLETA DOS ASSETS NECESSÁRIOS NO OLIRUMPLAY
+    const ASSETS_CATALOG = [
+      // === ATALHOS DA TELA INICIAL (TOP CARDS) ===
+      {
+        id: "shortcut_musicas_celular",
+        category: "shortcut",
+        title: "Atalho: Músicas do Celular",
+        subtitle: "Acesso a arquivos locais e pastas do smartphone",
+        filename: "shortcut_musicas_celular.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial moderna e vibrante de uma jovem sorrindo com expressão serena e feliz, olhos suavemente fechados, usando fones de ouvido modernos brancos e ciano enquanto segura seu smartphone. Fitas sonoras coloridas e fluidas em ciano, rosa coral e amarelo ensolarado ondulam pelo ar com notas musicais alegres flutuando ao redor. Fundo claro e iluminado com degradês suaves, estética limpa e calorosa, estilo arte digital moderna vetorial, traços nítidos e elegantes, sem texto.",
+        promptEN: "Modern vibrant vector illustration of a cheerful young woman smiling serenely with eyes gently closed, wearing sleek white and cyan over-ear headphones while holding her smartphone. Colorful flowing sound waves and musical ribbons in cyan, coral pink, and sunny yellow curving through the air with joyful floating musical notes. Clean bright illuminated background with soft pastel gradients, uplifting music lifestyle aesthetic, crisp digital vector art, Behance trending, masterpiece, no text."
+      },
+      {
+        id: "shortcut_radios_aovivo",
+        category: "shortcut",
+        title: "Atalho: Rádios ao Vivo",
+        subtitle: "Catálogo de rádios online Radio Browser",
+        filename: "shortcut_radios_aovivo.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial moderna e luminosa de um jovem sorridente com fones de ouvido sintonizando uma estação de rádio ao vivo com entusiasmo. Ondas de transmissão de áudio e frequências sonoras coloridas em azul elétrico, ciano e lavanda fluem dinamicamente ao redor, com notas musicais e pequenas estrelas suaves flutuando pelo ar. Fundo claro e ensolarado, estilo vetorial limpo e contemporâneo, cores vivas e acolhedoras, sem texto.",
+        promptEN: "Modern bright vector illustration of a cheerful young man wearing wireless headphones enthusiastically tuning into a live radio broadcast. Dynamic colorful broadcast waves and audio frequency ribbons in electric blue, cyan, and soft lavender curving gracefully around him, with floating musical notes and subtle sparkles. Clean bright sunlit background, modern flat vector editorial style, vibrant uplifting colors, Behance trending, high resolution, no text."
+      },
+      {
+        id: "shortcut_explorar_estilos",
+        category: "shortcut",
+        title: "Atalho: Explorar Estilos",
+        subtitle: "Navegação por categorias e décadas musicais",
+        filename: "shortcut_explorar_estilos.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial moderna e colorida de dois amigos felizes compartilhando a descoberta de novas músicas, sorrindo e dançando com fones de ouvido. Uma explosão harmoniosa de fitas sonoras multicoloridas em turquesa, magenta, amarelo e violeta envolve a cena com notas musicais alegres flutuando. Fundo claro, estilo vetorial moderno e limpo, atmosfera de alegria e diversidade musical, sem texto.",
+        promptEN: "Vibrant modern vector illustration of two happy friends joyfully sharing music discovery, smiling and grooving with stylish headphones. A flowing burst of colorful musical ribbons and sound waves in turquoise, magenta, yellow, and violet curving around them with playful floating music notes. Bright illuminated background, clean contemporary vector artwork, joyful music exploration vibe, trending digital illustration, no text."
+      },
+      {
+        id: "shortcut_videoclipes",
+        category: "shortcut",
+        title: "Atalho: Videoclipes",
+        subtitle: "Catálogo integrado de clipes musicais em alta definição",
+        filename: "shortcut_videoclipes.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial vibrante de uma jovem empolgada assistindo a um videoclipe musical na tela de seu smartphone, com reflexos coloridos e expressivos em seu rosto feliz. Fitas musicais cintilantes em degradê rosa choque, ciano e dourado dançam pelo espaço com notas musicais luminosas. Fundo claro e limpo, estética vetorial moderna, traços elegantes e luminosos, sem texto.",
+        promptEN: "Vibrant modern vector illustration of an excited young person watching a high-energy music video on a mobile screen, with a happy expressive smile. Dynamic swirling musical ribbons in hot pink, cyan, and golden tones dancing through the air with glowing floating music notes. Bright clean background, modern vector digital art, colorful and lively atmosphere, high detail, no text."
+      },
+
+      // === BANNERS E TELAS PRINCIPAIS ===
+      {
+        id: "banner_audio_indestrutivel",
+        category: "banner",
+        title: "Banner: Áudio Indestrutível",
+        subtitle: "Reprodução contínua que nunca trava em segundo plano",
+        filename: "banner_audio_indestrutivel.png",
+        ratio: "1280x480 (Panorâmico Widescreen)",
+        promptPT: "Ilustração panorâmica vetorial moderna e clara com um grupo diverso de jovens amigos curtindo música juntos com fones de ouvido sem fio, sorrindo e caminhando ao ar livre. Fitas sonoras contínuas em degradê ciano, rosa e amarelo ligam todos eles em perfeita sintonia musical, com notas e ondas sonoras suaves flutuando em um céu límpido e iluminado. Estilo vetorial limpo, sofisticado e acolhedor, sem texto.",
+        promptEN: "Wide panoramic modern vector illustration of a diverse group of happy young friends enjoying crystal-clear music together with wireless headphones, smiling and walking in harmony. Continuous vibrant sound ribbons in cyan, coral pink, and sunny yellow gracefully connecting them with floating musical notes in a bright illuminated sky. Clean contemporary vector artwork, joyful seamless audio experience, high resolution, no text."
+      },
+      {
+        id: "banner_splash_abertura",
+        category: "banner",
+        title: "Banner / Tela de Abertura (Splash)",
+        subtitle: "Tela inicial de carregamento do OlirumPlay",
+        filename: "banner_splash_abertura.png",
+        ratio: "1080x1920 (Vertical Smartphone)",
+        promptPT: "Ilustração vetorial vertical luminosa e moderna de uma pessoa jovem com olhos fechados e expressão de pura paz e felicidade, imersa em música com fones de ouvido estilizados. Ondas sonoras fluidas em degradê suave de ciano, azul piscina, lavanda e pêssego envolvem a composição em curvas elegantes com notas musicais flutuantes. Fundo claro, radiante e limpo, estética vetorial de alta qualidade para abertura de aplicativo, sem texto.",
+        promptEN: "Vertical full-screen modern vector illustration of a serene young woman with eyes closed in pure musical bliss, wearing sleek headphones. Elegant swirling sound ribbons and soft acoustic waves in cyan, turquoise, lavender, and warm peach flowing harmoniously around her with floating musical notes. Bright clean luminous background, premium mobile splash screen artwork, beautiful vector art, no text."
+      },
+      {
+        id: "banner_videoclipes",
+        category: "banner",
+        title: "Banner: Videoclipes em Alta Definição",
+        subtitle: "Topo da seção de clipes do YouTube",
+        filename: "banner_videoclipes.png",
+        ratio: "1280x480 (Panorâmico Widescreen)",
+        promptPT: "Banner panorâmico vetorial moderno e alegre de jovens amigos assistindo juntos a clipes de música em seus dispositivos portáteis, rindo e curtindo cada momento com fones de ouvido. Ondas visuais coloridas em degradê ciano, rosa choque e amarelo envolvem a cena com notas musicais e molduras dinâmicas. Fundo claro e iluminado, estilo vetorial limpo e contagiante, sem texto.",
+        promptEN: "Wide panoramic modern vector illustration of happy young friends enjoying music videos together on portable screens, smiling and grooving with stylish headphones. Vibrant swirling ribbons in cyan, hot pink, and sunny yellow connecting the scene with playful musical notes. Bright sunlit clean background, modern vector artwork, lively and engaging atmosphere, no text."
+      },
+
+      // === CAPAS DE GÊNEROS E ESTILOS MUSICAIS ===
+      {
+        id: "genre_catolica",
+        category: "genre",
+        title: "Gênero: Música Católica",
+        subtitle: "Orações, hinos e louvores católicos",
+        filename: "genre_catolica.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial clara e acolhedora de uma mulher jovem cantando louvor com expressão serena de gratidão e olhos fechados, fones de ouvido discretos, luz suave dourada e celeste iluminando a cena. Fitas sonoras em degradê azul celeste, branco e dourado fluem suavemente com notas musicais delicadas e raios suaves de paz. Fundo claro e iluminado, estilo vetorial limpo e inspirador, sem texto.",
+        promptEN: "Gentle and uplifting modern vector illustration of a young woman singing worship music with a peaceful expression of gratitude and closed eyes, wearing headphones, bathed in soft golden and sky-blue light. Flowing musical ribbons in celestial blue, white, and warm gold drifting with delicate music notes. Clean bright illuminated background, inspiring and peaceful vector digital art, no text."
+      },
+      {
+        id: "genre_classica",
+        category: "genre",
+        title: "Gênero: Música Clássica",
+        subtitle: "Sinfonias, concertos e obras orquestrais eternas",
+        filename: "genre_classica.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial elegante e moderna de um jovem músico tocando violino com paixão e sutileza, olhos concentrados e expressão poética. Fitas sonoras orquestrais fluidas em tons de azul royal, dourado suave e lavanda dançam pelo ar formando harmonias com claves e notas musicais. Fundo claro e sofisticado, estilo vetorial limpo e refinado, sem texto.",
+        promptEN: "Sophisticated modern vector illustration of an expressive violinist passionately playing, surrounded by graceful swirling orchestral sound ribbons in royal blue, soft gold, and lavender. Elegant musical notes and treble clefs floating through the air. Bright clean minimalist background, refined contemporary vector digital art, inspiring classical music aesthetic, no text."
+      },
+      {
+        id: "genre_jazz_blues",
+        category: "genre",
+        title: "Gênero: Jazz & Blues",
+        subtitle: "Improvisos e clássicos marcantes do jazz e blues",
+        filename: "genre_jazz_blues.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial estilosa e aconchegante de um músico tocando saxofone com alma e ginga, expressão envolvente e sorriso leve. Ondas sonoras suaves e aveludadas em tons de âmbar dourado, azul meia-noite suave e turquesa fluem ao redor do instrumento com notas musicais de jazz flutuando. Fundo claro com iluminação acolhedora, traço vetorial limpo e artístico, sem texto.",
+        promptEN: "Stylish warm modern vector illustration of a soulful musician playing saxophone with passion and charisma. Smooth flowing sound waves and ribbons in warm amber gold, soft indigo, and turquoise swirling gracefully with floating jazz musical notes. Bright inviting background, clean vector artwork, relaxed and classy jazz ambiance, no text."
+      },
+      {
+        id: "genre_classic_rock",
+        category: "genre",
+        title: "Gênero: Classic Rock",
+        subtitle: "Hinos eternos das maiores lendas do rock mundial",
+        filename: "genre_classic_rock.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial cheia de energia de um guitarrista jovem vibrando com um solo de guitarra elétrica clássica, cabelo ao vento e sorriso contagiante. Fitas sonoras dinâmicas e eletrizantes em tons de vermelho rubi, laranja solar e azul vibrante cortam o ar com notas musicais e pequenas centelhas estilizadas. Fundo claro e moderno, estilo vetorial vibrante e limpo, sem tons escuros, sem texto.",
+        promptEN: "Energetic modern vector illustration of a passionate rock guitarist joyfully striking a chord on a classic vintage electric guitar, smiling with windblown hair. Dynamic electrifying sound ribbons in ruby red, solar orange, and electric blue sweeping through the air with bold musical notes and playful stylized sparks. Bright clean modern background, high-energy rock aesthetic, no dark tones, crisp vector art, no text."
+      },
+      {
+        id: "genre_love_songs",
+        category: "genre",
+        title: "Gênero: Love Songs",
+        subtitle: "Baladas românticas e canções apaixonadas inesquecíveis",
+        filename: "genre_love_songs.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial romântica e acolhedora de um jovem casal encostando a testa suavemente, sorrindo e compartilhando o mesmo par de fones de ouvido. Fitas sonoras delicadas em degradê rosa coral, pêssego e lilás fluem ao redor deles em formato de suaves curvas harmoniosas com pequenos corações e notas musicais. Fundo claro e suave, estilo vetorial limpo, carinhoso e moderno, sem texto.",
+        promptEN: "Romantic modern vector illustration of a loving young couple gently leaning their heads together, smiling warmly and sharing a pair of headphones. Soft flowing sound ribbons in coral pink, warm peach, and lilac swirling around them in gentle harmonious curves with floating delicate musical notes and subtle heart shapes. Bright clean soft-lit background, heartwarming vector digital art, no text."
+      },
+      {
+        id: "genre_lounge",
+        category: "genre",
+        title: "Gênero: Lounge & Chillout",
+        subtitle: "Batidas relaxantes e sonoridade para desacelerar",
+        filename: "genre_lounge.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial serena e moderna de uma pessoa relaxando confortavelmente em uma poltrona macia perto de plantas verdes, olhos fechados e expressão de bem-estar absoluto com fones de ouvido. Ondas sonoras suaves e fluidas em verde menta, turquesa e bege areia flutuam com notas musicais em ritmo calmo. Fundo claro, limpo e arejado, estética minimalista e relaxante, sem texto.",
+        promptEN: "Serene modern vector illustration of a young person comfortably relaxing in a modern lounge armchair next to lush indoor plants, smiling peacefully with eyes closed and wireless headphones. Gentle flowing acoustic waves in mint green, turquoise, and soft cream drifting smoothly with calm musical notes. Bright airy clean background, minimalist chillout aesthetic, pristine vector art, no text."
+      },
+      {
+        id: "genre_love_rock",
+        category: "genre",
+        title: "Gênero: Love Rock",
+        subtitle: "Baladas e melodias românticas no ritmo do rock",
+        filename: "genre_love_rock.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial emocionante de uma cantora jovem segurando uma guitarra com expressão apaixonada e sincera, cabelos ondulados e sorriso expressivo. Fitas sonoras vibrantes em degradê magenta, violeta e dourado suave envolvem a cena com notas musicais dinâmicas. Fundo claro e iluminado, estilo vetorial moderno e emotivo, sem texto.",
+        promptEN: "Emotional modern vector illustration of a young female vocalist holding an electric guitar with an authentic passionate expression and gentle smile. Swirling vibrant sound ribbons in rich magenta, violet, and soft gold curving through the air with expressive musical notes. Bright clean illuminated background, modern vector artwork, soulful melodic rock vibe, no text."
+      },
+      {
+        id: "genre_pop_hits",
+        category: "genre",
+        title: "Gênero: Pop & Top 40",
+        subtitle: "Os sucessos mais tocados no mundo todo",
+        filename: "genre_pop_hits.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial super vibrante e alegre de uma jovem estilosa dançando com fones de ouvido e segurando o celular, cheia de energia e com um sorriso radiante. Fitas sonoras multicoloridas em amarelo neon, rosa choque e ciano dançam pelo espaço com confetes geométricos e notas musicais saltitantes. Fundo claro, ensolarado e limpo, estética pop moderna, traços limpos e coloridos, sem texto.",
+        promptEN: "Super vibrant modern vector illustration of a trendy young woman dancing with headphones and holding her phone, full of energy with a radiant happy smile. Swirling dynamic sound ribbons in sunny yellow, hot pink, and bright cyan dancing through the air with playful musical notes and soft geometric confetti. Bright illuminated sunlit background, modern colorful pop music aesthetic, clean vector lines, no text."
+      },
+      {
+        id: "genre_greatest_hits",
+        category: "genre",
+        title: "Gênero: Greatest Hits",
+        subtitle: "O melhor de todas as épocas em um só lugar",
+        filename: "genre_greatest_hits.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial moderna e celebrativa de um fã de música comemorando com os braços abertos e fones de ouvido, rodeado por uma espiral dourada e ciano brilhante de sucessos inesquecíveis e notas musicais cintilantes. Fundo claro e iluminado com confetes suaves de luz, atmosfera de celebração e grandes clássicos, estilo vetorial limpo e memorável, sem texto.",
+        promptEN: "Celebratory modern vector illustration of a joyful music lover cheering with open arms and stylish headphones, surrounded by a glowing golden and cyan spiral ribbon of timeless hits and sparkling musical notes. Bright clear background with subtle festive ambient light, triumphant and iconic feel, clean contemporary vector digital art, no text."
+      },
+      {
+        id: "genre_anos_70",
+        category: "genre",
+        title: "Gênero: Anos 70",
+        subtitle: "A era de ouro da disco music e soul clássico",
+        filename: "genre_anos_70.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial retrô moderna e colorida de um personagem estiloso com visual setentista (cabelo ondulado, gola clássica e óculos retrô), sorrindo e dançando ao som da Era Disco com fones de ouvido. Ondas sonoras em degradê laranja solar, amarelo mostarda, turquesa e magenta envolvem a cena com notas musicais e reflexos suaves de disco. Fundo claro, estilo vetorial limpo e ensolarado, sem texto.",
+        promptEN: "Retro-modern colorful vector illustration of a stylish 1970s character with groovy fashion and retro sunglasses, smiling and joyfully dancing to classic disco funk with headphones. Winding sound ribbons in sunny orange, mustard yellow, turquoise, and warm magenta sweeping around with floating musical notes and subtle disco sparkles. Bright clean background, uplifting vintage 70s vector art, no text."
+      },
+      {
+        id: "genre_anos_80",
+        category: "genre",
+        title: "Gênero: Anos 80",
+        subtitle: "Sintetizadores, new wave e o pop mais marcante",
+        filename: "genre_anos_80.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial alegre e nostálgica de uma jovem com look oitentista colorido (jaqueta estilosa, faixa de cabelo), curtindo música em seu walkman portátil com fones de almofada laranja, cantando e sorrindo. Fitas sonoras geométricas fluidas em azul elétrico, rosa fúcsia e amarelo cítrico circulam com notas musicais e formas pop. Fundo claro e vibrante, estética vetorial moderna e ensolarada, sem texto.",
+        promptEN: "Cheerful nostalgic modern vector illustration of an 80s styled young person with vibrant casual jacket and retro headphones, joyfully listening to a portable cassette player and singing along. Fluid geometric sound waves and ribbons in electric cyan, fuchsia pink, and citrus yellow flowing with lively music notes. Bright clean sunlit background, fun and colorful 1980s pop vector art, no text."
+      },
+      {
+        id: "genre_anos_90",
+        category: "genre",
+        title: "Gênero: Anos 90",
+        subtitle: "Eurodance, grunge e as paradas inesquecíveis dos anos 90",
+        filename: "genre_anos_90.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial descolada e luminosa de um jovem com roupa streetwear dos anos 90 (boné para trás, camiseta solta), sorrindo e curtindo com fones de ouvido, segurando um reprodutor portátil de CD. Fitas sonoras em degradê verde água, roxo suave e amarelo fluem pelo ar com notas musicais e ondas iridescentes. Fundo claro, limpo e descontraído, estilo vetorial contemporâneo, sem texto.",
+        promptEN: "Cool and bright modern vector illustration of a 1990s character with retro casual streetwear and headphones, smiling and nodding to the rhythm of a portable CD player. Sleek iridescent sound waves and ribbons in teal, lavender, and soft lime curving through the air with playful musical notes. Bright clean aesthetic, authentic 90s nostalgia vector digital art, no text."
+      },
+      {
+        id: "genre_anos_2000",
+        category: "genre",
+        title: "Gênero: Anos 2000",
+        subtitle: "A virada do milênio, R&B moderno e pop global",
+        filename: "genre_anos_2000.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial luminosa estilo Y2K contemporâneo de uma jovem com fones de ouvido brancos conectados a um clássico MP3 player de bolso, sorrindo e caminhando pela cidade em um dia claro. Ondas sonoras fluidas em degradê prateado, azul bebê e rosa chiclete ondulam pelo espaço com notas musicais limpas. Fundo claro e arejado, estilo vetorial moderno e nostálgico, sem texto.",
+        promptEN: "Bright Y2K-inspired modern vector illustration of a young woman with white earbuds connected to a classic pocket MP3 player, smiling happily on a sunny day. Smooth futuristic sound ribbons in baby blue, silver-white, and bubblegum pink winding around her with crisp music notes. Clean luminous background, modern millennium pop nostalgia vector art, no text."
+      },
+      {
+        id: "genre_sertanejo",
+        category: "genre",
+        title: "Gênero: Sertanejo",
+        subtitle: "Modão, sertanejo raiz e sucessos universitários",
+        filename: "genre_sertanejo.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial acolhedora e calorosa de um jovem músico com chapéu de couro estilizado, sorrindo abertamente enquanto dedilha uma viola ou violão acústico, cercado por uma luz dourada do campo. Fitas sonoras em degradê âmbar, terracota, amarelo trigo e azul celeste fluem como melodias pelo ar com notas musicais festivas. Fundo claro e ensolarado, estilo vetorial limpo, autêntico e alegre, sem texto.",
+        promptEN: "Warm and welcoming modern vector illustration of a cheerful Brazilian sertanejo musician wearing a stylish acoustic country hat, smiling broadly while playing an acoustic guitar in warm golden countryside daylight. Flowing acoustic sound ribbons in rich amber, warm terracotta, and sky blue curving through the air with festive musical notes. Bright sunlit clean background, authentic modern country vector art, no text."
+      },
+      {
+        id: "genre_mpb_bossa",
+        category: "genre",
+        title: "Gênero: MPB & Bossa Nova",
+        subtitle: "Harmonias refinadas da música popular brasileira",
+        filename: "genre_mpb_bossa.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial poética e elegante de uma mulher jovem sentada perto de uma janela ensolarada, sorrindo serenamente enquanto dedilha um violão de cordas de nylon com fones de ouvido. Ondas sonoras suaves em verde mar, amarelo dourado suave e azul atlântico flutuam com notas musicais em ritmo calmo e charmoso. Fundo claro, minimalista e arejado, beleza brasileira limpa e acolhedora, sem texto.",
+        promptEN: "Poetic and elegant modern vector illustration of a young woman seated by a sunlit open window, smiling serenely as she plays a classical nylon-string acoustic guitar with headphones. Gentle melodic waves in seafoam green, soft sunny gold, and Atlantic blue drifting gracefully with calm musical notes. Bright airy clean background, sophisticated Bossa Nova and MPB aesthetic, clean vector digital art, no text."
+      },
+      {
+        id: "genre_samba_pagode",
+        category: "genre",
+        title: "Gênero: Samba & Pagode",
+        subtitle: "A alegria do samba de raiz, partido alto e pagode",
+        filename: "genre_samba_pagode.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial contagiante e alegre de uma roda de amigos sorridentes tocando pandeiro e cavaquinho, dançando e cantando juntos sob uma luz ensolarada e tropical. Fitas sonoras coloridas em tons de amarelo sol, verde folha, laranja e azul royal ondulam ao redor com notas musicais saltitantes. Fundo claro e festivo, atmosfera de alegria brasileira, traço vetorial limpo e expressivo, sem texto.",
+        promptEN: "Lively and contagious modern vector illustration of smiling Brazilian friends playing tambourine (pandeiro) and small acoustic guitar, singing and dancing together in tropical sunshine. Vibrant musical ribbons in sunny yellow, palm green, warm orange, and royal blue weaving around them with joyful dancing music notes. Bright clean background, festive Brazilian samba & pagode vector art, no text."
+      },
+      {
+        id: "genre_gospel",
+        category: "genre",
+        title: "Gênero: Gospel & Adoração",
+        subtitle: "Músicas de fé, esperança e louvor cristão",
+        filename: "genre_gospel.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial inspiradora e luminosa de uma pessoa jovem com olhos fechados e sorriso sereno de profunda paz, mãos suavemente levantadas em adoração enquanto ouve com fones de ouvido. Fitas sonoras suaves em degradê dourado celestial, branco luminoso e azul suave envolvem a cena com notas musicais e pequenas partículas de luz. Fundo claro, radiante e limpo, atmosfera de esperança e paz espiritual, sem texto.",
+        promptEN: "Inspiring and luminous modern vector illustration of a young worshipper with closed eyes and a peaceful serene smile, hands gently raised in heartfelt praise while listening with headphones. Graceful flowing sound ribbons in celestial gold, pure white, and soft sky blue swirling around with floating musical notes and gentle light beams. Bright radiant clean background, spiritual and uplifting vector art, no text."
+      },
+      {
+        id: "genre_eletronica",
+        category: "genre",
+        title: "Gênero: Eletrônica & Dance",
+        subtitle: "House, techno, EDM e as melhores pistas do mundo",
+        filename: "genre_eletronica.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial vibrante e moderna de um jovem sorrindo empolgado em frente a uma controladora musical estilizada, com fones de ouvido e mão no ar guiando o ritmo. Ondas sonoras pulsantes e dinâmicas em degradê ciano elétrico, magenta brilhante e amarelo solar fluem em curvas modernas com notas e batidas visuais estilizadas. Fundo claro e moderno, estilo vetorial luminoso e cheio de vida, sem tons escuros, sem texto.",
+        promptEN: "Dynamic and high-energy modern vector illustration of a cheerful young music producer or DJ smiling behind a sleek controller console, wearing headphones with one hand in the air enjoying the beat. Colorful pulsating sound waves and ribbons in electric cyan, bright magenta, and solar yellow flowing dynamically with stylish music notes. Bright clean background, modern electronic dance music aesthetic, pristine vector art, no text."
+      },
+      {
+        id: "genre_reggae",
+        category: "genre",
+        title: "Gênero: Reggae & Positive Vibes",
+        subtitle: "Roots, dub e boas vibrações jamaicanas",
+        filename: "genre_reggae.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial alegre e ensolarada de um jovem com dreadlocks estilosos e fones de ouvido, sorrindo de olhos fechados sob a brisa e segurando um violão acústico, transmitindo paz e positividade. Ondas sonoras fluidas nas cores tropicais de verde esmeralda, amarelo ouro e vermelho quente fluem suavemente com notas musicais e folhas de palmeira estilizadas. Fundo claro e ensolarado, estilo vetorial limpo e caloroso, sem texto.",
+        promptEN: "Sunny and joyful modern vector illustration of a stylish young person with dreadlocks and headphones, smiling peacefully with eyes closed while holding an acoustic guitar, radiating good vibes. Flowing musical ribbons in vibrant tropical emerald green, warm gold, and sunny red drifting with cheerful music notes and subtle stylized palm leaves. Bright sunlit clean background, authentic positive reggae vector art, no text."
+      },
+
+            {
+        id: "genre_lendas_tributos",
+        category: "genre",
+        title: "Gênero: Lendas da Música & Tributos 24h",
+        subtitle: "Canais dedicados 24h a Michael Jackson, Queen, Beatles, Elvis e ícones mundiais",
+        filename: "genre_lendas_tributos.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial moderna, limpa e vibrante de um artista cantor lendário carismático no palco, inspirado na energia de ícones como Michael Jackson e Freddie Mercury, vestindo jaqueta estilosa clássica com detalhes dourados e ciano, cantando com microfone vintage e sorriso confiante. Fitas de luz e ondas sonoras cintilantes em degradê dourado solar, magenta e azul elétrico envolvem a cena com notas musicais douradas e pequenas estrelas suaves. Fundo claro, estético e iluminado, traços vetoriais nítidos e sofisticados, homenagem alegre às lendas da música, sem texto.",
+        promptEN: "Modern clean and vibrant vector illustration of a charismatic legendary pop-rock singer performing joyfully on stage, inspired by icons like Michael Jackson and Freddie Mercury, wearing a sleek stylized jacket with golden and cyan accents, singing into a retro vintage microphone. Swirling luminous sound ribbons and stage light waves in solar gold, vibrant magenta, and electric blue sweeping gracefully with golden music notes and subtle sparkling stars. Bright clean illuminated background, high-end editorial vector art, uplifting musical tribute vibe, trending on Behance, no text."
+      },
+      {
+        id: "genre_meditacao",
+        category: "genre",
+        title: "Gênero: Meditação & Yoga",
+        subtitle: "Frequências sonoras, mantras, taças tibetanas e paz interior",
+        filename: "genre_meditacao.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial moderna, serena e colorida de uma pessoa em posição de lótus de meditação (yoga) com expressão de profunda paz, olhos fechados e sorriso suave, usando fones de ouvido discretos. Ondas sonoras circulares e fluidas em tons harmônicos de turquesa suave, lavanda e dourado caloroso emanam suavemente ao redor, com pétalas de lótus estilizadas e notas musicais zen flutuando no ar. Fundo claro e arejado com iluminação celestial suave, estilo vetorial limpo, minimalista e relaxante, sem texto.",
+        promptEN: "Serene and modern vector illustration of a person peacefully meditating in lotus yoga pose with eyes gently closed and a calm smile, wearing sleek minimalist headphones. Smooth concentric harmonic sound waves and glowing acoustic aura in pastel turquoise, soothing lavender, and warm golden tones emanating gently around, with subtle stylized lotus petals and zen music notes floating serenely. Bright airy background with soft warm morning light, clean contemporary vector art, peaceful mindfulness aesthetic, no text."
+      },
+      {
+        id: "genre_natureza_sono",
+        category: "genre",
+        title: "Gênero: Sons da Natureza & Dormir",
+        subtitle: "Sons de chuva suave, tempestade, ondas do mar e floresta para sono profundo",
+        filename: "genre_natureza_sono.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial moderna e aconchegante de uma pessoa descansando confortavelmente em uma poltrona macia ou cama estilizada com fones de ouvido confortáveis, dormindo serenamente com expressão tranquila. Elementos da natureza estilizados e gentis como gotas de chuva cristalinas, ondas do mar suaves em curvas elegantes e folhas verdes orvalhadas flutuam harmonicamente em fitas sonoras em degradê azul celeste, verde menta e azul escuro pacífico. Fundo claro com suave claridade noturna aconchegante, estilo vetorial acolhedor e relaxante, sem texto.",
+        promptEN: "Cozy and soothing modern vector illustration of a person resting comfortably in a soft armchair or stylized bed with plush headphones, sleeping serenely with a calm relaxed smile. Gentle stylized nature elements like crystalline soft rain drops, curved ocean wave ribbons, and dewy mint green leaves floating harmoniously within smooth sound waves in sky blue, mint green, and peaceful indigo. Clean illuminated cozy background, modern editorial vector art, deep sleep and nature therapy aesthetic, no text."
+      },
+      {
+        id: "genre_lofi_estudo",
+        category: "genre",
+        title: "Gênero: Lo-Fi Foco & Estudo",
+        subtitle: "Chillhop, batidas suaves e melodias calmas para estudo, trabalho e concentração",
+        filename: "genre_lofi_estudo.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial moderna e estilosa de um jovem estudante concentrado e relaxado em sua mesa de estudos, usando fones de ouvido over-ear modernos, com um caderno aberto e uma xícara fumegante de café ou chá ao lado de uma luminária de mesa moderna. Fitas sonoras suaves em tons pastéis aconchegantes de pêssego suave, lilás e ciano fluem delicadamente pelo ar com pequenas notas musicais flutuando. Fundo claro e arejado, iluminação aconchegante de fim de tarde, traços vetoriais nítidos e charmosos, atmosfera acolhedora de foco e estudo, sem texto.",
+        promptEN: "Charming modern vector illustration of a young student focused and relaxed at a clean study desk, wearing stylish over-ear headphones, with an open notebook, a modern warm desk lamp, and a steaming cup of coffee or tea. Soft pastel sound ribbons and rhythmic chillhop acoustic waves in warm peach, lilac, and gentle cyan drifting smoothly through the room with floating music notes. Bright clean airy background with cozy afternoon sunlight, crisp contemporary vector art, Lo-Fi study beats aesthetic, no text."
+      },
+      {
+        id: "genre_acustico",
+        category: "genre",
+        title: "Gênero: Acústico Suave & Café",
+        subtitle: "Dedilhados acústicos de violão de nylon e piano para momentos relaxantes",
+        filename: "genre_acustico.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ilustração vetorial limpa, quente e elegante de um músico amigável sentado em um banco de café aconchegante tocando suavemente um violão acústico de madeira clara, sorrindo calmamente. Ondas sonoras acústicas fluidas e orgânicas em tons quentes de âmbar, terracota suave, creme e ciano claro envolvem o instrumento, com notas musicais e pequenas folhas de outono estilizadas flutuando suavemente pelo ar. Fundo claro e acolhedor, estética moderna e refinada de cafeteria acústica, traços vetoriais nítidos, sem texto.",
+        promptEN: "Warm, clean, and elegant modern vector illustration of an acoustic musician sitting on a cozy stool gently fingerpicking a light wood acoustic guitar, smiling serenely. Flowing organic acoustic sound ribbons and warm vibrations in warm amber, soft terracotta, cream, and gentle cyan curving gracefully around the guitar with floating musical notes and delicate stylized autumn leaves. Bright sunlit welcoming cafe background, sophisticated contemporary vector art, acoustic chill vibe, no text."
+      },
+      // === TEXTURAS E FUNDOS DO SISTEMA ===
+      {
+        id: "bg_now_playing",
+        category: "bg",
+        title: "Background: Player de Reprodução",
+        subtitle: "Fundo suave para a tela do player e visualizador de áudio",
+        filename: "bg_now_playing.png",
+        ratio: "1080x1920 (Vertical Smartphone)",
+        promptPT: "Plano de fundo vetorial moderno, suave e limpo para tela de reprodução musical, composto por ondas sonoras fluidas e fitas melódicas multicoloridas em degradê translúcido de ciano, azul claro, rosa pastel e amarelo ensolarado. Notas musicais estilizadas flutuam suavemente pelo espaço em uma atmosfera acolhedora e inspiradora. Fundo claro iluminado, degradê suave e elegante, sem elementos pesados ou escuros, sem texto.",
+        promptEN: "Soft, bright and modern vector background for a music player screen, featuring translucent flowing musical ribbons and sound waves in pastel cyan, sky blue, gentle coral, and warm sunny yellow. Minimalist stylized musical notes drifting gracefully through an illuminated aesthetic space. Clean bright background with elegant gentle gradients, uplifting and non-distracting music backdrop, no text."
+      },
+      {
+        id: "bg_folder_header",
+        category: "bg",
+        title: "Background: Cabeçalho das Pastas",
+        subtitle: "Faixa decorativa no topo da lista de pastas de arquivos",
+        filename: "bg_folder_header.png",
+        ratio: "1280x400 (Panorâmico)",
+        promptPT: "Banner panorâmico vetorial limpo e iluminado para cabeçalho de pastas de músicas, com curvas suaves e elegantes em tons de ciano pastel, azul e toques solares de amarelo, transmitindo organização, frescor e clareza. Pequenas notas musicais sutis e partículas de luz flutuam em harmonia. Fundo claro e contemporâneo, sem texto.",
+        promptEN: "Clean and illuminated panoramic modern vector banner for a music folder header, featuring gentle flowing curved waves in pastel cyan, soft blue, and sunny yellow accents. Subtle floating musical notes and delicate ambient particles conveying clarity and fresh organization. Bright minimalist background, Behance trending vector art, no text."
+      },
+      {
+        id: "bg_home_hero",
+        category: "bg",
+        title: "Background: Topo da Home Screen",
+        subtitle: "Degradê superior e recepção visual na tela inicial",
+        filename: "bg_home_hero.png",
+        ratio: "1280x500 (Panorâmico)",
+        promptPT: "Banner panorâmico vetorial claro e acolhedor para o topo da tela inicial do aplicativo, com ondas musicais elegantes em degradê suave de turquesa, rosa coral e dourado, criando uma recepção luminosa e positiva para o usuário. Fundo claro e limpo com notas musicais sutis integradas suavemente à composição, estilo moderno e sofisticado, sem texto.",
+        promptEN: "Warm, bright, and welcoming panoramic modern vector banner for the mobile app home screen header, featuring graceful musical waves in soft turquoise, coral pink, and golden sunlight gradients. Clean bright illuminated background with delicate floating music notes, uplifting and premium music app aesthetic, no text."
+      },
+
+      // === ÍCONE E IDENTIDADE VISUAL DO APP ===
+      {
+        id: "olirum_logo_icon",
+        category: "shortcut",
+        title: "Ícone do Aplicativo: OlirumPlay Launcher",
+        subtitle: "Ícone oficial do app para tela inicial do Android e Play Store",
+        filename: "olirum_logo_icon.png",
+        ratio: "512x512 ou 1024x1024 (Quadrado)",
+        promptPT: "Ícone de aplicativo vetorial moderno, vibrante e marcante para o OlirumPlay. Em um fundo estilizado com curvas suaves e elegantes, destaca-se um símbolo musical icônico combinando um fone de ouvido moderno com botão Play dinâmico no centro e ondas sonoras coloridas em degradê ciano (#00E5D4), azul royal (#008BFF) e rosa vibrante (#FF3DAD). Visual limpo, geométrico, profissional e memorável, estilo app de música de alta qualidade na Play Store, sem texto.",
+        promptEN: "Modern, vibrant and iconic app launcher icon for OlirumPlay music player. Centered on a sleek circular badge, a beautifully crafted emblem seamlessly combining stylish over-ear headphones, a dynamic Play button at the center, and colorful acoustic soundwaves in a rich gradient of bright cyan #00E5D4, royal blue #008BFF, and vibrant magenta-pink #FF3DAD. Clean minimalist vector geometry, premium mobile app store quality, high-contrast, eye-catching, no text."
+      }
+    ];
+
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let storageKey = 'olirumplay_images_audit_v2';
+    let userImages = {};
+
+    // === SISTEMA DE ARMAZENAMENTO ILIMITADO VIA INDEXEDDB ===
+    const DB_NAME = 'OlirumPlayAuditDB_v2';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'audit_images';
+
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = function(e) {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function saveImageToDB(assetId, dataUrl) {
+      try {
+        const db = await openDatabase();
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.put({ id: assetId, dataUrl: dataUrl, updatedAt: new Date().toISOString() });
+      } catch (err) {
+        console.error('Erro ao salvar no IndexedDB:', err);
+      }
+    }
+
+    async function loadAllFromDB() {
+      try {
+        const db = await openDatabase();
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.getAll();
+        return new Promise((resolve) => {
+          request.onsuccess = () => {
+            const results = request.result || [];
+            const map = {};
+            results.forEach(item => {
+              map[item.id] = { dataUrl: item.dataUrl, updatedAt: item.updatedAt };
+            });
+            resolve(map);
+          };
+          request.onerror = () => resolve({});
+        });
+      } catch (e) {
+        return {};
+      }
+    }
+
+    async function removeImageFromDB(assetId) {
+      try {
+        const db = await openDatabase();
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.delete(assetId);
+      } catch (e) {}
+    }
+
+    // === OTIMIZADOR DE IMAGENS AUTOMÁTICO (REDUZ DE 4MB PARA ~80KB SEM PERDER QUALIDADE) ===
+    function optimizeImage(dataUrl, maxDim = 800) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = function() {
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          try {
+            resolve(canvas.toDataURL('image/png', 0.88));
+          } catch (e) {
+            resolve(dataUrl);
+          }
+        };
+        img.onerror = () => resolve(dataUrl);
+        img.src = dataUrl;
+      });
+    }
+
+    // CARREGA DADOS DO INDEXEDDB E LOCALSTORAGE
+    async function loadStorage() {
+      // 1. Tenta carregar do IndexedDB
+      const dbImages = await loadAllFromDB();
+      // 2. Tenta mesclar com localStorage caso exista
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const localImgs = JSON.parse(saved);
+          Object.assign(userImages, localImgs);
+        }
+      } catch (e) {}
+      Object.assign(userImages, dbImages);
+      updateStats();
+      renderCards();
+    }
+
+    // SALVA NO BANCO E LOCALSTORAGE
+    function saveStorage() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(userImages));
+      } catch (e) {
+        // Ignora cota de localStorage pois o IndexedDB salva tudo ilimitado!
+      }
+      updateStats();
+    }
+
+    // ATUALIZA ESTATÍSTICAS DO TOPO
+    function updateStats() {
+      const total = ASSETS_CATALOG.length;
+      let completed = 0;
+
+      ASSETS_CATALOG.forEach(asset => {
+        if (userImages[asset.id] && userImages[asset.id].dataUrl) {
+          completed++;
+        }
+      });
+
+      const pending = total - completed;
+      const percentage = Math.round((completed / total) * 100);
+
+      document.getElementById('statCompleted').textContent = completed;
+      document.getElementById('statPending').textContent = pending;
+      document.getElementById('statPercentage').textContent = `${percentage}% Concluído`;
+      document.getElementById('progressBar').style.width = `${percentage}%`;
+
+      // Contadores nas abas
+      document.getElementById('countAll').textContent = total;
+      document.getElementById('countGenre').textContent = ASSETS_CATALOG.filter(a => a.category === 'genre').length;
+      document.getElementById('countShortcut').textContent = ASSETS_CATALOG.filter(a => a.category === 'shortcut').length;
+      document.getElementById('countBanner').textContent = ASSETS_CATALOG.filter(a => a.category === 'banner').length;
+      document.getElementById('countBg').textContent = ASSETS_CATALOG.filter(a => a.category === 'bg').length;
+    }
+
+    // RENDERIZAÇÃO DOS CARDS
+    function renderCards() {
+      const grid = document.getElementById('cardsGrid');
+      grid.innerHTML = '';
+
+      const filtered = ASSETS_CATALOG.filter(asset => {
+        const isCompleted = userImages[asset.id] && userImages[asset.id].dataUrl;
+        
+        // Filtro por categoria
+        if (currentFilter === 'pending' && isCompleted) return false;
+        if (currentFilter === 'completed' && !isCompleted) return false;
+        if (currentFilter !== 'all' && currentFilter !== 'pending' && currentFilter !== 'completed') {
+          if (asset.category !== currentFilter) return false;
+        }
+
+        // Filtro de busca
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          const matchTitle = asset.title.toLowerCase().includes(q);
+          const matchFilename = asset.filename.toLowerCase().includes(q);
+          const matchSubtitle = asset.subtitle.toLowerCase().includes(q);
+          return matchTitle || matchFilename || matchSubtitle;
+        }
+
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+            <div style="font-size: 40px; margin-bottom: 12px;">🔍</div>
+            <h3 style="font-size: 18px; color: var(--text-primary); margin-bottom: 6px;">Nenhum item encontrado</h3>
+            <p style="font-size: 13px;">Tente alterar os filtros ou o termo de pesquisa.</p>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(asset => {
+        const isDone = userImages[asset.id] && userImages[asset.id].dataUrl;
+        const imgData = isDone ? userImages[asset.id].dataUrl : '';
+
+        let badgeClass = 'badge-genre';
+        let badgeLabel = 'Gênero Musical';
+        if (asset.category === 'shortcut') { badgeClass = 'badge-shortcut'; badgeLabel = 'Atalho'; }
+        if (asset.category === 'banner') { badgeClass = 'badge-banner'; badgeLabel = 'Banner'; }
+        if (asset.category === 'bg') { badgeClass = 'badge-bg'; badgeLabel = 'Background'; }
+
+        const card = document.createElement('div');
+        card.className = `card ${isDone ? 'completed' : ''}`;
+        card.id = `card_${asset.id}`;
+
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="card-meta">
+              <span class="badge-category ${badgeClass}">${badgeLabel}</span>
+              <h2 class="card-title">${asset.title}</h2>
+              <p class="card-subtitle">${asset.subtitle}</p>
+              <div style="margin-top: 4px;">
+                <span class="card-filename">📁 ${asset.filename}</span>
+              </div>
+            </div>
+            <div>
+              <span class="status-pill ${isDone ? 'status-done' : 'status-pending'}" id="status_${asset.id}">
+                ${isDone ? '✅ Aprovada' : '⏳ Pendente'}
+              </span>
+            </div>
+          </div>
+
+          <div class="card-preview-area" id="previewArea_${asset.id}" ondragover="handleDragOver(event)" ondrop="handleDrop(event, '${asset.id}')">
+            <img src="${imgData}" class="card-preview-img ${isDone ? 'visible' : ''}" id="img_${asset.id}" alt="${asset.title}">
+            <div class="dropzone-overlay">
+              <button type="button" class="dropzone-paste-btn" onclick="event.stopPropagation(); pasteImageFromClipboard('${asset.id}')">
+                📋 ${isDone ? 'Substituir por Imagem Copiada' : 'Colar Imagem Copiada'}
+              </button>
+              <div class="dropzone-text" style="margin-top: 6px;">
+                ou <span onclick="triggerFileInput('${asset.id}')" style="cursor: pointer;">selecionar arquivo do PC</span>
+              </div>
+              <div class="dropzone-hint">${asset.ratio}</div>
+            </div>
+            <input type="file" class="hidden-file-input" id="file_${asset.id}" accept="image/*" onchange="handleFileSelect(event, '${asset.id}')">
+          </div>
+
+          <div class="card-body">
+            <div>
+              <div class="prompt-label">
+                <span>Prompt IA (Midjourney / DALL-E 3 / Leonardo)</span>
+                <span style="color: var(--cyan); cursor: pointer;" onclick="copyPrompt('${asset.id}', 'en')">Copiar EN</span>
+              </div>
+              <div class="prompt-box" onclick="copyPrompt('${asset.id}', 'en')" title="Clique para copiar o prompt">${asset.promptEN}</div>
+            </div>
+
+            <div>
+              <div class="prompt-label">
+                <span>Descrição em Português</span>
+                <span style="color: var(--blue); cursor: pointer;" onclick="copyPrompt('${asset.id}', 'pt')">Copiar PT</span>
+              </div>
+              <div class="prompt-box" style="color: var(--text-secondary); max-height: 60px;" onclick="copyPrompt('${asset.id}', 'pt')">${asset.promptPT}</div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button class="btn btn-copy" id="btnCopy_${asset.id}" onclick="copyPrompt('${asset.id}', 'en')">
+              📋 Copiar Prompt
+            </button>
+            <button class="btn btn-paste" id="btnPaste_${asset.id}" onclick="pasteImageFromClipboard('${asset.id}')" title="Colar direto o que você acabou de copiar">
+              📥 Colar Imagem
+            </button>
+            <button class="btn btn-download ${isDone ? 'visible' : ''}" id="btnDownload_${asset.id}" onclick="downloadSingle('${asset.id}')" title="Baixar ${asset.filename}">
+              💾 Salvar
+            </button>
+            <button class="btn btn-remove ${isDone ? 'visible' : ''}" id="btnRemove_${asset.id}" onclick="removeImage('${asset.id}')" title="Remover imagem">
+              🗑️
+            </button>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    // COPIA PROMPT COM FEEDBACK VISUAL
+    function copyPrompt(assetId, lang = 'en') {
+      const asset = ASSETS_CATALOG.find(a => a.id === assetId);
+      if (!asset) return;
+
+      const text = lang === 'en' ? asset.promptEN : asset.promptPT;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(lang === 'en' ? 'Prompt em Inglês copiado!' : 'Prompt em Português copiado!');
+        const btn = document.getElementById(`btnCopy_${assetId}`);
+        if (btn) {
+          btn.classList.add('copied');
+          btn.innerHTML = '✅ Copiado!';
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerHTML = '📋 Copiar Prompt IA';
+          }, 2000);
+        }
+      }).catch(err => {
+        console.error('Erro ao copiar:', err);
+      });
+    }
+
+    // COLAR IMAGEM DIRETAMENTE DA ÁREA DE TRANSFERÊNCIA (ESTILO AUDITORIA DOS SANTOS)
+    async function pasteImageFromClipboard(assetId) {
+      const btn = document.getElementById(`btnPaste_${assetId}`);
+      if (btn) {
+        btn.innerHTML = '⏳ Colando...';
+      }
+
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.read) {
+          throw new Error('Navegador não suporta Clipboard.read()');
+        }
+
+        const clipboardItems = await navigator.clipboard.read();
+        let foundImage = false;
+
+        // 1. Procura primeiro se há dados de imagem direta (PNG, JPEG, etc.)
+        for (const item of clipboardItems) {
+          const imageType = item.types.find(type => type.startsWith('image/'));
+          if (imageType) {
+            const blob = await item.getType(imageType);
+            processImageFile(blob, assetId);
+            foundImage = true;
+            break;
+          }
+        }
+
+        // 2. Se não achou blob de imagem direto, busca no HTML copiado (ex: imagem copiada da web/chat)
+        if (!foundImage) {
+          for (const item of clipboardItems) {
+            if (item.types.includes('text/html')) {
+              const htmlBlob = await item.getType('text/html');
+              const htmlText = await htmlBlob.text();
+              const match = htmlText.match(/<img[^>]+src=["']([^"']+)["']/i);
+              if (match && match[1]) {
+                const src = match[1];
+                if (src.startsWith('data:image/')) {
+                  userImages[assetId] = {
+                    dataUrl: src,
+                    updatedAt: new Date().toISOString()
+                  };
+                  saveStorage();
+                  updateCardUi(assetId, src);
+                  foundImage = true;
+                  showToast('Imagem colada com sucesso!');
+                  break;
+                } else if (src.startsWith('http')) {
+                  convertUrlToDataUrl(src, assetId);
+                  foundImage = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        // 3. Se for link direto de imagem copiado como texto
+        if (!foundImage) {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            const cleanText = text.trim();
+            if (cleanText.startsWith('data:image/')) {
+              userImages[assetId] = {
+                dataUrl: cleanText,
+                updatedAt: new Date().toISOString()
+              };
+              saveStorage();
+              updateCardUi(assetId, cleanText);
+              foundImage = true;
+              showToast('Imagem colada com sucesso!');
+            } else if (cleanText.startsWith('http://') || cleanText.startsWith('https://')) {
+              convertUrlToDataUrl(cleanText, assetId);
+              foundImage = true;
+            }
+          }
+        }
+
+        if (!foundImage) {
+          showToast('Nenhuma imagem encontrada na área de transferência. Copie a imagem primeiro!');
+        }
+      } catch (err) {
+        console.warn('Clipboard read fallback:', err);
+        showToast('Clique no card e aperte Ctrl+V para colar.');
+      } finally {
+        if (btn) {
+          btn.innerHTML = '📥 Colar Imagem';
+        }
+      }
+    }
+
+    // CONVERTE URL DE IMAGEM DA WEB PARA DATAURL LOCAL
+    function convertUrlToDataUrl(url, assetId) {
+      showToast('Carregando imagem...');
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = async function() {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const rawDataUrl = canvas.toDataURL('image/png');
+          const optimized = await optimizeImage(rawDataUrl, 800);
+          userImages[assetId] = {
+            dataUrl: optimized,
+            updatedAt: new Date().toISOString()
+          };
+          await saveImageToDB(assetId, optimized);
+          saveStorage();
+          updateCardUi(assetId, optimized);
+          showToast('Imagem colada com sucesso!');
+        } catch (e) {
+          userImages[assetId] = {
+            dataUrl: url,
+            updatedAt: new Date().toISOString()
+          };
+          await saveImageToDB(assetId, url);
+          saveStorage();
+          updateCardUi(assetId, url);
+          showToast('Imagem colada com sucesso!');
+        }
+      };
+      img.onerror = function() {
+        showToast('Não foi possível carregar a imagem do link copiado.');
+      };
+      img.src = url;
+    }
+
+    // TRIGGER DE INPUT DE ARQUIVO
+    function triggerFileInput(assetId) {
+      const input = document.getElementById(`file_${assetId}`);
+      if (input) input.click();
+    }
+
+    // SELEÇÃO DE ARQUIVO MANUAL
+    function handleFileSelect(event, assetId) {
+      const file = event.target.files[0];
+      if (file) {
+        processImageFile(file, assetId);
+      }
+    }
+
+    // DRAG AND DROP
+    function handleDragOver(event) {
+      event.preventDefault();
+    }
+
+    function handleDrop(event, assetId) {
+      event.preventDefault();
+      if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+        processImageFile(event.dataTransfer.files[0], assetId);
+      }
+    }
+
+    // PROCESSA ARQUIVO DE IMAGEM PARA DATAURL OTIMIZADO
+    function processImageFile(file, assetId) {
+      if (!file.type.startsWith('image/')) {
+        showToast('Por favor, selecione um arquivo de imagem válido.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const rawDataUrl = e.target.result;
+        showToast('Otimizando e salvando imagem...');
+        const optimized = await optimizeImage(rawDataUrl, 800);
+        userImages[assetId] = {
+          dataUrl: optimized,
+          updatedAt: new Date().toISOString()
+        };
+        await saveImageToDB(assetId, optimized);
+        saveStorage();
+        updateCardUi(assetId, optimized);
+        showToast('Imagem adicionada e salva com sucesso!');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ATUALIZA UI DO CARD ESPECÍFICO SEM RE-RENDERIZAR TUDO
+    function updateCardUi(assetId, dataUrl) {
+      const card = document.getElementById(`card_${assetId}`);
+      const img = document.getElementById(`img_${assetId}`);
+      const status = document.getElementById(`status_${assetId}`);
+      const btnDownload = document.getElementById(`btnDownload_${assetId}`);
+      const btnRemove = document.getElementById(`btnRemove_${assetId}`);
+
+      if (dataUrl) {
+        if (card) card.classList.add('completed');
+        if (img) {
+          img.src = dataUrl;
+          img.classList.add('visible');
+        }
+        if (status) {
+          status.className = 'status-pill status-done';
+          status.innerHTML = '✅ Aprovada';
+        }
+        if (btnDownload) btnDownload.classList.add('visible');
+        if (btnRemove) btnRemove.classList.add('visible');
+      } else {
+        if (card) card.classList.remove('completed');
+        if (img) {
+          img.src = '';
+          img.classList.remove('visible');
+        }
+        if (status) {
+          status.className = 'status-pill status-pending';
+          status.innerHTML = '⏳ Pendente';
+        }
+        if (btnDownload) btnDownload.classList.remove('visible');
+        if (btnRemove) btnRemove.classList.remove('visible');
+      }
+      updateStats();
+    }
+
+    // REMOVE UMA IMAGEM
+    async function removeImage(assetId) {
+      if (confirm('Deseja remover a imagem deste card?')) {
+        delete userImages[assetId];
+        await removeImageFromDB(assetId);
+        saveStorage();
+        updateCardUi(assetId, null);
+        showToast('Imagem removida.');
+      }
+    }
+
+    // BAIXA IMAGEM ÚNICA COM O NOME CORRETO
+    function downloadSingle(assetId) {
+      const asset = ASSETS_CATALOG.find(a => a.id === assetId);
+      const data = userImages[assetId];
+      if (!asset || !data || !data.dataUrl) return;
+
+      const link = document.createElement('a');
+      link.href = data.dataUrl;
+      link.download = asset.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast(`Baixando ${asset.filename}...`);
+    }
+
+    // SUPORTE A CTRL + V GLOBAL E NO CARD
+    window.addEventListener('paste', function(e) {
+      const items = e.clipboardData.items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+
+          // Tenta identificar se o usuário estava com foco sobre algum card específico
+          const hoveredCard = document.querySelector('.card:hover');
+          if (hoveredCard) {
+            const assetId = hoveredCard.id.replace('card_', '');
+            processImageFile(file, assetId);
+            return;
+          }
+
+          // Senão, acha o primeiro card pendente da visualização atual
+          const firstPending = ASSETS_CATALOG.find(a => !userImages[a.id]);
+          if (firstPending) {
+            processImageFile(file, firstPending.id);
+            return;
+          }
+
+          showToast('Passe o mouse sobre o card desejado antes de apertar Ctrl+V.');
+          break;
+        }
+      }
+    });
+
+    // FILTROS
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      renderCards();
+    }
+
+    // BUSCA
+    function handleSearch() {
+      searchQuery = document.getElementById('searchInput').value;
+      renderCards();
+    }
+
+    // TOAST NOTIFICATION
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const msgEl = document.getElementById('toastMessage');
+      msgEl.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2600);
+    }
+
+    // BAIXAR TODAS AS IMAGENS EM ARQUIVO ZIP
+    async function downloadAllZip() {
+      if (typeof JSZip === 'undefined') {
+        showToast('Biblioteca ZIP carregando... exportando em JSON');
+        exportData();
+        return;
+      }
+      const zip = new JSZip();
+      let count = 0;
+      for (const asset of ASSETS_CATALOG) {
+        if (userImages[asset.id] && userImages[asset.id].dataUrl) {
+          const dataUrl = userImages[asset.id].dataUrl;
+          if (dataUrl.includes(',')) {
+            const base64Data = dataUrl.split(',')[1];
+            if (base64Data) {
+              zip.file(asset.filename, base64Data, { base64: true });
+              count++;
+            }
+          }
+        }
+      }
+      if (count === 0) {
+        showToast('Nenhuma imagem aprovada para baixar no ZIP ainda.');
+        return;
+      }
+      showToast(`Gerando pacote ZIP com ${count} imagens...`);
+      try {
+        const content = await zip.generateAsync({ type: 'blob' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        link.download = 'olirumplay_assets.zip';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('Download do ZIP iniciado com sucesso!');
+      } catch (e) {
+        console.error('Erro ao gerar ZIP:', e);
+        exportData();
+      }
+    }
+
+    // EXPORTAR BACKUP JSON
+    function exportData() {
+      const jsonStr = JSON.stringify(userImages, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `olirumplay_backup_imagens_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Backup exportado com sucesso!');
+    }
+
+    // RESTAURAR BACKUP JSON
+    function triggerImport() {
+      document.getElementById('backupInput').click();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          userImages = Object.assign({}, userImages, imported);
+          for (const key of Object.keys(imported)) {
+            if (imported[key] && imported[key].dataUrl) {
+              await saveImageToDB(key, imported[key].dataUrl);
+            }
+          }
+          saveStorage();
+          renderCards();
+          showToast('Backup restaurado com sucesso!');
+        } catch (err) {
+          alert('Arquivo de backup inválido.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // INICIALIZAÇÃO
+    window.onload = function() {
+      loadStorage();
+      updateStats();
+      renderCards();
+    };
+  </script>
+</body>
+</html>
