@@ -27,9 +27,17 @@ class OlirumPlaybackService : MediaSessionService() {
     private var mediaSession: MediaSession? = null
     private lateinit var player: ExoPlayer
 
+    companion object {
+        var instance: OlirumPlaybackService? = null
+            private set
+        var currentPlayer: ExoPlayer? = null
+            private set
+    }
+
     @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
+        instance = this
 
         // Configura atributos de áudio profissionais com foco de áudio automático (pausa em ligações)
         val audioAttributes = AudioAttributes.Builder()
@@ -42,6 +50,8 @@ class OlirumPlaybackService : MediaSessionService() {
             .setHandleAudioBecomingNoisy(true) // Pausa ao desconectar fones
             .setWakeMode(C.WAKE_MODE_NETWORK) // WakeLock para streaming contínuo
             .build()
+
+        currentPlayer = player
 
         val intent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
@@ -171,6 +181,8 @@ class OlirumPlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        currentPlayer = null
+        instance = null
         mediaSession?.run {
             player.release()
             release()

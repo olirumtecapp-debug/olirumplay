@@ -10,13 +10,11 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.widget.RemoteViews;
 
-import androidx.media3.session.MediaController;
-import androidx.media3.session.SessionToken;
+import androidx.media3.exoplayer.ExoPlayer;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.olirum.player.service.OlirumPlaybackService;
 
 import java.io.InputStream;
@@ -57,48 +55,52 @@ public class OlirumPlayerWidget extends AppWidgetProvider {
             ACTION_WIDGET_PREV.equals(action) ||
             ACTION_WIDGET_NEXT.equals(action)) {
 
-            // goAsync garante que o Android não destrua o processo antes do callback assíncrono terminar
-            final PendingResult pendingResult = goAsync();
-
-            try {
-                SessionToken sessionToken = new SessionToken(context, new ComponentName(context, OlirumPlaybackService.class));
-                ListenableFuture<MediaController> controllerFuture = new MediaController.Builder(context, sessionToken).buildAsync();
-
-                controllerFuture.addListener(() -> {
-                    try {
-                        MediaController controller = controllerFuture.get();
-                        if (ACTION_WIDGET_PLAY_PAUSE.equals(action)) {
-                            if (controller.isPlaying()) {
-                                controller.pause();
-                            } else if (controller.getMediaItemCount() > 0) {
-                                controller.play();
-                            } else {
-                                // Se não houver itens na fila, abre a tela principal para reproduzir
-                                Intent openIntent = new Intent(context, MainActivity.class);
-                                openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                                context.startActivity(openIntent);
-                            }
-                        } else if (ACTION_WIDGET_PREV.equals(action)) {
-                            if (controller.getCurrentPosition() > 3000) {
-                                controller.seekTo(0);
-                            } else if (controller.hasPreviousMediaItem()) {
-                                controller.seekToPreviousMediaItem();
-                            }
-                        } else if (ACTION_WIDGET_NEXT.equals(action)) {
-                            if (controller.hasNextMediaItem()) {
-                                controller.seekToNextMediaItem();
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    } finally {
-                        pendingResult.finish();
+            // 1. EXECUÇÃO IMEDIATA: Se o Player já está instanciado na memória, opera sem atraso de IPC!
+            ExoPlayer player = OlirumPlaybackService.Companion.getCurrentPlayer();
+            if (player != null) {
+                if (ACTION_WIDGET_PLAY_PAUSE.equals(action)) {
+                    if (player.isPlaying()) {
+                        player.pause();
+                    } else if (player.getMediaItemCount() > 0) {
+                        player.play();
+                    } else {
+                        triggerServiceAction(context, action);
                     }
-                }, MoreExecutors.directExecutor());
-            } catch (Exception e) {
-                e.printStackTrace();
-                pendingResult.finish();
+                } else if (ACTION_WIDGET_PREV.equals(action)) {
+                    if (player.getCurrentPosition() > 3000) {
+                        player.seekTo(0);
+                    } else if (player.hasPreviousMediaItem()) {
+                        player.seekToPreviousMediaItem();
+                    }
+                } else if (ACTION_WIDGET_NEXT.equals(action)) {
+                    if (player.hasNextMediaItem()) {
+                        player.seekToNextMediaItem();
+                    }
+                }
+                return;
             }
+
+            // 2. Se o serviço estiver dormindo, acorda o OlirumPlaybackService para iniciar a reprodução
+            triggerServiceAction(context, action);
+        }
+    }
+
+    private static void triggerServiceAction(Context context, String action) {
+        try {
+            Intent serviceIntent = new Intent(context, OlirumPlaybackService.class);
+            serviceIntent.setAction(action);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent);
+            } else {
+                context.startService(serviceIntent);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                Intent openIntent = new Intent(context, MainActivity.class);
+                openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                context.startActivity(openIntent);
+            } catch (Exception ignored) {}
         }
     }
 
@@ -106,7 +108,6 @@ public class OlirumPlayerWidget extends AppWidgetProvider {
         String finalTitle = (title != null && !title.trim().isEmpty()) ? title : "OlirumPlay";
         String finalArtist = (artist != null && !artist.trim().isEmpty()) ? artist : "Toque para ouvir música";
 
-        // Persiste o estado mais recente para reboots ou recriação do widget
         try {
             SharedPreferences sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             sp.edit()
@@ -138,13 +139,14 @@ public class OlirumPlayerWidget extends AppWidgetProvider {
         int playIcon = isPlaying ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play;
         views.setImageViewResource(R.id.widget_play, playIcon);
 
-        // Click no app principal
+        // Click no card inteiro ou no texto abre o app OlirumPlay
         Intent appIntent = new Intent(context, MainActivity.class);
         appIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingApp = PendingIntent.getActivity(
                 context, 0, appIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
+        views.setOnClickPendingIntent(R.id.widget_root, pendingApp);
         views.setOnClickPendingIntent(R.id.widget_cover, pendingApp);
         views.setOnClickPendingIntent(R.id.widget_title, pendingApp);
         views.setOnClickPendingIntent(R.id.widget_artist, pendingApp);
