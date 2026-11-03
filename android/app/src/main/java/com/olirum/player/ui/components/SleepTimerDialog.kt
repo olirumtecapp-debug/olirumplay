@@ -96,8 +96,9 @@ fun SleepTimerDialog(
 
                 // Status ativo ou mensagem
                 if (isRunning) {
-                    val minutes = remainingSeconds / 60
-                    val seconds = remainingSeconds % 60
+                    val totalSec = remainingSeconds ?: 0L
+                    val minutes = totalSec / 60
+                    val seconds = totalSec % 60
                     val formatted = String.format("%02d:%02d", minutes, seconds)
 
                     Surface(
