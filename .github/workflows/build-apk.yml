@@ -1,4 +1,4 @@
-﻿name: Build OlirumPlay Native APK
+name: Build OlirumPlay Native APK
 
 on:
   push:
@@ -37,7 +37,6 @@ jobs:
       - name: Prepare APK Files
         run: |
           mkdir -p release-apk
-          # Usar o APK de Release oficial assinado permanentemente com v1 e v2
           if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
             cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay-v1.14.1.apk
             cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay.apk
@@ -62,24 +61,20 @@ jobs:
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
         with:
           tag_name: v1.14.1
-          name: "OlirumPlay v1.14.1 â€” Favoritos Reativos, Widget Interativo & Foco Musical"
+          name: "OlirumPlay v1.14.1 - Harmonia Visual, Presets Anti-Quebra e Filtro Estrito de Radios"
           body: |
-            ### ðŸŽ§ OlirumPlay v1.14.1 â€” Favoritos Reativos, Widget Interativo & Foco Musical
+            ### OlirumPlay v1.14.1 - Harmonia Visual, Presets Anti-Quebra e Filtro Estrito de Radios
 
-            **Principais Novidades e CorreÃ§Ãµes:**
-            - ðŸŽ¨ **Identidade Visual 3D Completa (27 Obras Vetoriais Neon):**
-              - Todas as 18 categorias de rÃ¡dio agora possuem capas 3D exclusivas e vibrantes geradas via IA.
-              - Atalhos rÃ¡pidos na Home com ilustraÃ§Ãµes exclusivas (MÃºsicas do Celular, RÃ¡dios Online, Explorar Estilos).
-              - Banners "Ãudio IndestrutÃ­vel" e cabeÃ§alhos de pastas com acabamento artÃ­stico premium.
-            - ðŸŽ¯ **Filtro Anti-ColisÃ£o Rigoroso de GÃªneros:**
-              - EliminaÃ§Ã£o total de contaminaÃ§Ã£o cruzada (ex: Classic Rock aparecendo em MÃºsica ClÃ¡ssica).
-              - RemoÃ§Ã£o de tags ambÃ­guas e aplicaÃ§Ã£o de listas de exclusÃ£o estritas em todas as 18 categorias.
-            - â˜€ï¸/ðŸŒ™ **Modo Claro / Escuro 100% Funcional:**
-              - AlternÃ¢ncia dinÃ¢mica suave no topo da tela com suporte completo a paleta de alto contraste tanto no tema claro quanto no escuro.
-            - ðŸ”€ **Modo AleatÃ³rio para MÃºsicas e Pastas:**
-              - BotÃ£o "AleatÃ³rio" dedicado na visualizaÃ§Ã£o de detalhes de pasta.
-              - BotÃµes de reproduÃ§Ã£o rÃ¡pida e aleatÃ³ria diretamente em cada card de pasta da biblioteca.
-            - ðŸ”‘ **Assinatura Universal Permanente v1 + v2:** AtualizaÃ§Ã£o contÃ­nua sem erro de incompatibilidade.
+            **Novidades e Ajustes Solicitados:**
+            - **Equalizador e Presets Harmonizados:**
+              - Layout de 3 colunas simetricas para os modos: "Mega Bass", "Voz Clara" e "Modo Estrada".
+              - Tipografia ajustada para nao quebrar linha em nenhuma tela no badge ativo e nos botoes.
+            - **Filtro Anti-Contaminacao em Radios Online:**
+              - Eliminacao completa de mistura de generos (Catolica, Classica, Jazz, Sertanejo, Rock).
+              - Validacao estrita por tags primarias e palavras-chave negativas.
+            - **Landing Page Acolhedora:**
+              - Paleta de cores suave para os olhos, eliminando o excesso de brilho branco.
+              - Download direto do APK v1.14.1 em https://olirumplay.vercel.app.
           files: |
             release-apk/OlirumPlay-v1.14.1.apk
             release-apk/OlirumPlay.apk
