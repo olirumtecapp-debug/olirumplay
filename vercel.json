@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "redirects": [
+    {
+      "source": "/OlirumPlay.apk",
+      "destination": "https://github.com/olirumtecapp-debug/olirumplay/releases/download/v1.14.0/OlirumPlay-v1.14.0.apk",
+      "permanent": false
+    },
+    {
+      "source": "/OlirumPlay-v1.14.0.apk",
+      "destination": "https://github.com/olirumtecapp-debug/olirumplay/releases/download/v1.14.0/OlirumPlay-v1.14.0.apk",
+      "permanent": false
+    },
+    {
+      "source": "/download/apk",
+      "destination": "https://github.com/olirumtecapp-debug/olirumplay/releases/download/v1.14.0/OlirumPlay-v1.14.0.apk",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

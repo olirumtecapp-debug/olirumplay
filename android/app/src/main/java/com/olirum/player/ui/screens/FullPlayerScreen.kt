@@ -24,6 +24,7 @@ import androidx.media3.common.Player
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.olirum.player.ui.components.CoverArtSearchDialog
+import com.olirum.player.ui.components.SleepTimerDialog
 import com.olirum.player.ui.components.formatDuration
 import com.olirum.player.ui.theme.*
 import com.olirum.player.ui.viewmodel.MainPlayerViewModel
@@ -53,6 +54,9 @@ fun FullPlayerScreen(
     var isDraggingSlider by remember { mutableStateOf(false) }
     var sliderPosition by remember { mutableFloatStateOf(0f) }
     var showCoverSearchDialog by remember { mutableStateOf(false) }
+    var showSleepTimerDialog by remember { mutableStateOf(false) }
+    val sleepTimerRemainingSeconds by viewModel.sleepTimerRemainingSeconds.collectAsState()
+
 
     val progress = if (isDraggingSlider) {
         sliderPosition
@@ -68,6 +72,16 @@ fun FullPlayerScreen(
             onSelectCover = { url -> viewModel.setManualCover(track, url) }
         )
     }
+
+    if (showSleepTimerDialog) {
+        SleepTimerDialog(
+            remainingSeconds = sleepTimerRemainingSeconds,
+            onSetTimer = { mins -> viewModel.setSleepTimer(mins) },
+            onCancelTimer = { viewModel.cancelSleepTimer() },
+            onDismiss = { showSleepTimerDialog = false }
+        )
+    }
+
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -120,17 +134,26 @@ fun FullPlayerScreen(
                     )
                 }
 
-                if (!isRadio) {
-                    IconButton(onClick = onNavigateToLyrics) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { showSleepTimerDialog = true }) {
                         Icon(
-                            imageVector = Icons.Rounded.Mic,
-                            contentDescription = "Ver Letras",
-                            tint = OlirumCyan,
+                            imageVector = Icons.Rounded.Bedtime,
+                            contentDescription = "Timer para Dormir",
+                            tint = if (sleepTimerRemainingSeconds != null) OlirumCyan else colors.textSecondary,
                             modifier = Modifier.size(24.dp)
                         )
                     }
-                } else {
-                    Spacer(modifier = Modifier.size(48.dp))
+
+                    if (!isRadio) {
+                        IconButton(onClick = onNavigateToLyrics) {
+                            Icon(
+                                imageVector = Icons.Rounded.Mic,
+                                contentDescription = "Ver Letras",
+                                tint = OlirumCyan,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
                 }
             }
 

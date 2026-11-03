@@ -1,8 +1,11 @@
 package com.olirum.player.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -17,6 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.olirum.player.ui.components.OlirumTopBar
+import com.olirum.player.ui.components.SleepTimerDialog
 import com.olirum.player.ui.theme.*
 import com.olirum.player.ui.viewmodel.MainPlayerViewModel
 
@@ -27,9 +31,22 @@ fun WidgetsScreen(
     val colors = LocalOlirumColors.current
     val isDarkMode by viewModel.isDarkMode.collectAsState()
 
-    var bassBoost by remember { mutableFloatStateOf(0.7f) }
-    var midRange by remember { mutableFloatStateOf(0.5f) }
-    var treble by remember { mutableFloatStateOf(0.6f) }
+    val bassBoost by viewModel.bassBoost.collectAsState()
+    val midRange by viewModel.midRange.collectAsState()
+    val treble by viewModel.treble.collectAsState()
+    val selectedPreset by viewModel.selectedPreset.collectAsState()
+    val sleepTimerRemainingSeconds by viewModel.sleepTimerRemainingSeconds.collectAsState()
+    var showSleepTimerDialog by remember { mutableStateOf(false) }
+
+    
+    if (showSleepTimerDialog) {
+        SleepTimerDialog(
+            remainingSeconds = sleepTimerRemainingSeconds,
+            onSetTimer = { mins -> viewModel.setSleepTimer(mins) },
+            onCancelTimer = { viewModel.cancelSleepTimer() },
+            onDismiss = { showSleepTimerDialog = false }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -165,7 +182,7 @@ fun WidgetsScreen(
                 }
             }
 
-            // Seção 2: Equalizador Profissional
+            // Seção 2: Equalizador Profissional com Presets de 1 Toque
             item {
                 Spacer(modifier = Modifier.height(18.dp))
                 Surface(
@@ -175,66 +192,217 @@ fun WidgetsScreen(
                     shadowElevation = 2.dp
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Rounded.GraphicEq,
-                                contentDescription = null,
-                                tint = OlirumCyan,
-                                modifier = Modifier.size(22.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Rounded.GraphicEq,
+                                    contentDescription = null,
+                                    tint = OlirumCyan,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Equalizador & Mega Bass",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colors.textPrimary,
+                                    maxLines = 1,
+                                    softWrap = false
+                                )
+                            }
+
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = OlirumCyan.copy(alpha = 0.15f)
+                            ) {
+                                Text(
+                                    text = selectedPreset,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = OlirumCyan,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Presets Rápidos
+                        val presets = listOf("Mega Bass", "Voz Clara", "Modo Estrada", "Rock Potente", "Equilibrado")
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(presets) { preset ->
+                                val isSelected = selectedPreset == preset
+                                Surface(
+                                    shape = RoundedCornerShape(20.dp),
+                                    color = if (isSelected) OlirumCyan else colors.card,
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, if (isSelected) OlirumCyan else colors.border),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .clickable { viewModel.applySoundPreset(preset) }
+                                ) {
+                                    Text(
+                                        text = preset,
+                                        fontSize = 12.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) Color.Black else colors.textPrimary,
+                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
                             Text(
-                                text = "Equalizador de Áudio",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
+                                text = "Graves Profundos (Bass)",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
                                 color = colors.textPrimary,
                                 maxLines = 1,
                                 softWrap = false
                             )
+                            Text(
+                                text = "${(bassBoost * 100).toInt()}%",
+                                fontSize = 12.sp,
+                                color = OlirumCyan,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        Text(
-                            text = "Graves Profundos (Bass)",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = colors.textPrimary,
-                            maxLines = 1,
-                            softWrap = false
-                        )
                         Slider(
                             value = bassBoost,
-                            onValueChange = { bassBoost = it },
+                            onValueChange = { viewModel.setEqualizerBands(it, midRange, treble) },
                             colors = SliderDefaults.colors(thumbColor = OlirumCyan, activeTrackColor = OlirumCyan)
                         )
 
-                        Text(
-                            text = "Médios / Vozes (Mid)",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = colors.textPrimary,
-                            maxLines = 1,
-                            softWrap = false
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Médios / Vozes (Mid)",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = colors.textPrimary,
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                            Text(
+                                text = "${(midRange * 100).toInt()}%",
+                                fontSize = 12.sp,
+                                color = OlirumBlue,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                         Slider(
                             value = midRange,
-                            onValueChange = { midRange = it },
+                            onValueChange = { viewModel.setEqualizerBands(bassBoost, it, treble) },
                             colors = SliderDefaults.colors(thumbColor = OlirumBlue, activeTrackColor = OlirumBlue)
                         )
 
-                        Text(
-                            text = "Agudos Cristalinos (Treble)",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = colors.textPrimary,
-                            maxLines = 1,
-                            softWrap = false
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Agudos Cristalinos (Treble)",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = colors.textPrimary,
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                            Text(
+                                text = "${(treble * 100).toInt()}%",
+                                fontSize = 12.sp,
+                                color = OlirumPurple,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                         Slider(
                             value = treble,
-                            onValueChange = { treble = it },
+                            onValueChange = { viewModel.setEqualizerBands(bassBoost, midRange, it) },
                             colors = SliderDefaults.colors(thumbColor = OlirumPurple, activeTrackColor = OlirumPurple)
+                        )
+                    }
+                }
+            }
+
+            // Seção Extra: Timer para Dormir (Sleep Timer)
+            item {
+                Spacer(modifier = Modifier.height(18.dp))
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable { showSleepTimerDialog = true },
+                    shape = RoundedCornerShape(16.dp),
+                    color = colors.surface,
+                    shadowElevation = 2.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(OlirumPurple.copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Bedtime,
+                                    contentDescription = null,
+                                    tint = OlirumPurple,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = "Timer para Dormir",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colors.textPrimary,
+                                    maxLines = 1,
+                                    softWrap = false
+                                )
+                                Text(
+                                    text = if (sleepTimerRemainingSeconds != null) {
+                                        val m = sleepTimerRemainingSeconds!! / 60
+                                        val s = sleepTimerRemainingSeconds!! % 60
+                                        "Ativo: %02d:%02d restantes (fade-out)".format(m, s)
+                                    } else {
+                                        "Desligamento automático com fade suave"
+                                    },
+                                    fontSize = 12.sp,
+                                    color = if (sleepTimerRemainingSeconds != null) OlirumCyan else colors.textSecondary,
+                                    fontWeight = if (sleepTimerRemainingSeconds != null) FontWeight.SemiBold else FontWeight.Normal,
+                                    maxLines = 1,
+                                    softWrap = false
+                                )
+                            }
+                        }
+
+                        Icon(
+                            imageVector = Icons.Rounded.ChevronRight,
+                            contentDescription = null,
+                            tint = colors.textSecondary
                         )
                     }
                 }

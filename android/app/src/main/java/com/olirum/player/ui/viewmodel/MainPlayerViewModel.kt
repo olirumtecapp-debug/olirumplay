@@ -20,6 +20,7 @@ import com.olirum.player.model.LyricLine
 import com.olirum.player.model.LyricsData
 import com.olirum.player.model.Track
 import com.olirum.player.service.OlirumPlaybackService
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -62,6 +63,24 @@ class MainPlayerViewModel(
 
     private val _repeatMode = MutableStateFlow(Player.REPEAT_MODE_OFF)
     val repeatMode: StateFlow<Int> = _repeatMode.asStateFlow()
+    // Sleep Timer com Fade-out Suave
+    private var sleepTimerJob: Job? = null
+    private val _sleepTimerRemainingSeconds = MutableStateFlow<Long?>(null)
+    val sleepTimerRemainingSeconds: StateFlow<Long?> = _sleepTimerRemainingSeconds.asStateFlow()
+
+    // Equalizador e Presets de Som
+    private val _bassBoost = MutableStateFlow(0.7f)
+    val bassBoost: StateFlow<Float> = _bassBoost.asStateFlow()
+
+    private val _midRange = MutableStateFlow(0.5f)
+    val midRange: StateFlow<Float> = _midRange.asStateFlow()
+
+    private val _treble = MutableStateFlow(0.6f)
+    val treble: StateFlow<Float> = _treble.asStateFlow()
+
+    private val _selectedPreset = MutableStateFlow("Equilibrado")
+    val selectedPreset: StateFlow<String> = _selectedPreset.asStateFlow()
+
 
     val isDarkMode: StateFlow<Boolean> = prefsRepository.isDarkMode
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
@@ -334,7 +353,66 @@ class MainPlayerViewModel(
         }
     }
 
+    
+    fun setSleepTimer(minutes: Int) {
+        sleepTimerJob?.cancel()
+        if (minutes <= 0) {
+            _sleepTimerRemainingSeconds.value = null
+            OlirumPlaybackService.currentPlayer?.volume = 1f
+            return
+        }
+
+        val totalSeconds = minutes * 60L
+        _sleepTimerRemainingSeconds.value = totalSeconds
+        OlirumPlaybackService.currentPlayer?.volume = 1f
+
+        sleepTimerJob = viewModelScope.launch {
+            var currentSec = totalSeconds
+            while (currentSec > 0) {
+                delay(1000L)
+                currentSec--
+                _sleepTimerRemainingSeconds.value = currentSec
+
+                // Fade-out suave nos últimos 30 segundos
+                if (currentSec in 1..30) {
+                    val factor = (currentSec.toFloat() / 30f).coerceIn(0.05f, 1f)
+                    OlirumPlaybackService.currentPlayer?.volume = factor
+                }
+            }
+
+            pause()
+            delay(500L)
+            OlirumPlaybackService.currentPlayer?.volume = 1f
+            _sleepTimerRemainingSeconds.value = null
+        }
+    }
+
+    fun cancelSleepTimer() {
+        sleepTimerJob?.cancel()
+        sleepTimerJob = null
+        _sleepTimerRemainingSeconds.value = null
+        OlirumPlaybackService.currentPlayer?.volume = 1f
+    }
+
+    fun setEqualizerBands(bass: Float, mid: Float, treb: Float, preset: String? = null) {
+        _bassBoost.value = bass
+        _midRange.value = mid
+        _treble.value = treb
+        _selectedPreset.value = preset ?: "Personalizado"
+    }
+
+    fun applySoundPreset(presetName: String) {
+        when (presetName) {
+            "Mega Bass" -> setEqualizerBands(1.0f, 0.45f, 0.70f, "Mega Bass")
+            "Voz Clara" -> setEqualizerBands(0.25f, 0.95f, 0.75f, "Voz Clara")
+            "Modo Estrada" -> setEqualizerBands(0.85f, 0.65f, 0.90f, "Modo Estrada")
+            "Rock Potente" -> setEqualizerBands(0.85f, 0.50f, 0.80f, "Rock Potente")
+            else -> setEqualizerBands(0.50f, 0.50f, 0.50f, "Equilibrado")
+        }
+    }
+
     override fun onCleared() {
+        cancelSleepTimer()
         super.onCleared()
         controllerFuture?.let { MediaController.releaseFuture(it) }
     }
