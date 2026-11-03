@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -197,17 +198,20 @@ fun WidgetsScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                modifier = Modifier.weight(1f, fill = false),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Icon(
                                     imageVector = Icons.Rounded.GraphicEq,
                                     contentDescription = null,
                                     tint = OlirumCyan,
-                                    modifier = Modifier.size(22.dp)
+                                    modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Equalizador & Mega Bass",
-                                    fontSize = 16.sp,
+                                    text = "Equalizador de Som",
+                                    fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = colors.textPrimary,
                                     maxLines = 1,
@@ -215,15 +219,19 @@ fun WidgetsScreen(
                                 )
                             }
 
+                            Spacer(modifier = Modifier.width(8.dp))
+
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
                                 color = OlirumCyan.copy(alpha = 0.15f)
                             ) {
                                 Text(
                                     text = selectedPreset,
-                                    fontSize = 11.sp,
+                                    fontSize = 10.5.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = OlirumCyan,
+                                    maxLines = 1,
+                                    softWrap = false,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                 )
                             }
@@ -231,29 +239,39 @@ fun WidgetsScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Presets Rápidos
-                        val presets = listOf("Mega Bass", "Voz Clara", "Modo Estrada", "Rock Potente", "Equilibrado")
-                        LazyRow(
+                        // 3 Modos Harmonizados em Linha Única sem quebra de texto
+                        val presets = listOf("Mega Bass", "Voz Clara", "Modo Estrada")
+                        Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            items(presets) { preset ->
+                            presets.forEach { preset ->
                                 val isSelected = selectedPreset == preset
                                 Surface(
-                                    shape = RoundedCornerShape(20.dp),
-                                    color = if (isSelected) OlirumCyan else colors.card,
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, if (isSelected) OlirumCyan else colors.border),
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(20.dp))
-                                        .clickable { viewModel.applySoundPreset(preset) }
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable { viewModel.applySoundPreset(preset) },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (isSelected) OlirumCyan else colors.card,
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, if (isSelected) OlirumCyan else colors.border)
                                 ) {
-                                    Text(
-                                        text = preset,
-                                        fontSize = 12.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                        color = if (isSelected) Color.Black else colors.textPrimary,
-                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp)
-                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 9.dp, horizontal = 2.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = preset,
+                                            fontSize = 11.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                            color = if (isSelected) Color.Black else colors.textPrimary,
+                                            maxLines = 1,
+                                            softWrap = false,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
                                 }
                             }
                         }

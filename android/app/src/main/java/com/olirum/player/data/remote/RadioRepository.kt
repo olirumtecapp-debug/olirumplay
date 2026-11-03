@@ -92,7 +92,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF00E5D4, 0xFF008BFF),
             iconName = "Church",
             drawableResName = "genre_catolica",
-            excludedKeywords = listOf("heavy metal", "death metal", "funk", "secular", "rock n roll", "hard rock")
+            excludedKeywords = listOf("gospel", "evangelica", "evangélica", "protestante", "adventista", "batista", "assembleia", "universal", "samba", "pagode", "sertanejo", "eletronica", "dance", "techno", "hip hop", "rap", "pop rock", "punk", "metal", "heavy metal", "death metal", "funk", "secular", "rock n roll", "hard rock", "carnaval")
         ),
         RadioCategory(
             id = "classica",
@@ -103,7 +103,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF8B5CF6, 0xFF008BFF),
             iconName = "Piano",
             drawableResName = "genre_classica",
-            excludedKeywords = listOf("rock", "metal", "heavy metal", "punk", "classic rock", "classic hits", "pop", "country", "dance", "electronic", "reggae", "hip hop", "rap", "r&b")
+            excludedKeywords = listOf("rock", "metal", "heavy metal", "punk", "classic rock", "classic hits", "pop", "country", "dance", "electronic", "reggae", "hip hop", "rap", "r&b", "sertanejo", "samba", "pagode", "forro", "forró", "funk", "gospel", "evangelica", "catolica", "jazz", "blues", "disco", "top 40", "hits", "talk", "news", "noticias", "jornal", "esporte")
         ),
         RadioCategory(
             id = "jazz_blues",
@@ -114,7 +114,7 @@ class RadioRepository {
             gradientColors = listOf(0xFFFF3DAD, 0xFF8B5CF6),
             iconName = "Saxophone",
             drawableResName = "genre_jazz_blues",
-            excludedKeywords = listOf("heavy metal", "classical", "opera", "trance", "techno", "edm", "sertanejo")
+            excludedKeywords = listOf("heavy metal", "metal", "classical", "opera", "trance", "techno", "edm", "sertanejo", "samba", "pagode", "forro", "funk", "gospel", "evangelica", "catolica", "rap", "hip hop", "dance", "disco", "punk", "country", "news", "talk")
         ),
         RadioCategory(
             id = "classic_rock",
@@ -125,7 +125,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF008BFF, 0xFF00E5D4),
             iconName = "Guitar",
             drawableResName = "genre_classic_rock",
-            excludedKeywords = listOf("classical", "orchestral", "opera", "chopin", "bach", "mozart", "electronic", "samba", "pagode")
+            excludedKeywords = listOf("classical", "orchestral", "opera", "chopin", "bach", "mozart", "electronic", "samba", "pagode", "sertanejo", "forro", "funk", "techno", "dance", "edm", "hip hop", "rap", "gospel", "evangelica", "catolica", "country", "pop hits", "top 40")
         ),
         RadioCategory(
             id = "love_songs",
@@ -136,7 +136,7 @@ class RadioRepository {
             gradientColors = listOf(0xFFFF3DAD, 0xFF00E5D4),
             iconName = "Heart",
             drawableResName = "genre_love_songs",
-            excludedKeywords = listOf("heavy metal", "death metal", "hard rock", "punk", "techno", "dance", "electronic")
+            excludedKeywords = listOf("heavy metal", "death metal", "hard rock", "punk", "techno", "dance", "electronic", "edm", "funk", "pagode", "samba", "sertanejo", "rap", "hip hop", "talk", "news")
         ),
         RadioCategory(
             id = "lounge",
@@ -147,7 +147,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF00E5D4, 0xFF8B5CF6),
             iconName = "Spa",
             drawableResName = "genre_lounge",
-            excludedKeywords = listOf("rock", "metal", "punk", "heavy metal", "hardcore")
+            excludedKeywords = listOf("rock", "metal", "punk", "heavy metal", "hardcore", "dance", "techno", "edm", "sertanejo", "pagode", "samba", "funk", "gospel", "evangelica", "catolica")
         ),
         RadioCategory(
             id = "love_rock",
@@ -158,7 +158,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF8B5CF6, 0xFFFF3DAD),
             iconName = "MusicNote",
             drawableResName = "genre_love_rock",
-            excludedKeywords = listOf("classical", "opera", "hip hop", "techno", "electronic", "samba")
+            excludedKeywords = listOf("classical", "opera", "hip hop", "techno", "electronic", "samba", "pagode", "sertanejo", "forro", "funk", "death metal", "black metal", "gospel", "evangelica")
         ),
         RadioCategory(
             id = "pop_hits",
@@ -169,7 +169,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF008BFF, 0xFFFF3DAD),
             iconName = "Star",
             drawableResName = "genre_pop_hits",
-            excludedKeywords = listOf("classical", "death metal", "heavy metal")
+            excludedKeywords = listOf("classical", "death metal", "heavy metal", "opera", "symphony", "talk", "news")
         ),
         RadioCategory(
             id = "greatest_hits",
@@ -180,7 +180,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF00E5D4, 0xFF008BFF),
             iconName = "Trophy",
             drawableResName = "genre_greatest_hits",
-            excludedKeywords = listOf("death metal", "heavy metal")
+            excludedKeywords = listOf("death metal", "heavy metal", "black metal", "grindcore", "talk", "news")
         ),
         RadioCategory(
             id = "anos_70",
@@ -191,7 +191,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF8B5CF6, 0xFF00E5D4),
             iconName = "Album",
             drawableResName = "genre_anos_70",
-            excludedKeywords = listOf("90s", "2000s", "2010s", "modern rock")
+            excludedKeywords = listOf("90s", "2000s", "2010s", "2020s", "modern rock", "techno", "edm", "trap", "funk", "sertanejo")
         ),
         RadioCategory(
             id = "anos_80",
@@ -202,7 +202,7 @@ class RadioRepository {
             gradientColors = listOf(0xFFFF3DAD, 0xFF8B5CF6),
             iconName = "Album",
             drawableResName = "genre_anos_80",
-            excludedKeywords = listOf("70s", "90s", "2000s", "2010s")
+            excludedKeywords = listOf("70s", "90s", "2000s", "2010s", "2020s", "modern rock", "trap", "funk", "sertanejo")
         ),
         RadioCategory(
             id = "anos_90",
@@ -213,7 +213,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF008BFF, 0xFF8B5CF6),
             iconName = "Album",
             drawableResName = "genre_anos_90",
-            excludedKeywords = listOf("70s", "80s", "2000s", "2010s")
+            excludedKeywords = listOf("70s", "80s", "2000s", "2010s", "2020s", "trap", "funk", "sertanejo")
         ),
         RadioCategory(
             id = "anos_2000",
@@ -224,7 +224,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF00E5D4, 0xFFFF3DAD),
             iconName = "Album",
             drawableResName = "genre_anos_2000",
-            excludedKeywords = listOf("70s", "80s")
+            excludedKeywords = listOf("70s", "80s", "oldies", "nostalgia 60s")
         ),
         RadioCategory(
             id = "sertanejo",
@@ -235,7 +235,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF008BFF, 0xFF00E5D4),
             iconName = "Radio",
             drawableResName = "genre_sertanejo",
-            excludedKeywords = listOf("rock", "metal", "techno", "classical", "hip hop", "electronic", "dance", "pop rock", "punk", "gospel", "evangelica", "reggae"),
+            excludedKeywords = listOf("rock", "metal", "techno", "classical", "hip hop", "electronic", "dance", "pop rock", "punk", "gospel", "evangelica", "catolica", "reggae", "jazz", "blues", "opera", "house", "edm"),
             countryCode = "BR"
         ),
         RadioCategory(
@@ -247,7 +247,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF8B5CF6, 0xFF008BFF),
             iconName = "MusicNote",
             drawableResName = "genre_mpb_bossa",
-            excludedKeywords = listOf("heavy metal", "techno", "punk", "death metal", "rock", "dance"),
+            excludedKeywords = listOf("heavy metal", "techno", "punk", "death metal", "rock", "dance", "edm", "sertanejo", "funk", "pagode", "samba", "gospel", "evangelica", "catolica"),
             countryCode = "BR"
         ),
         RadioCategory(
@@ -259,7 +259,7 @@ class RadioRepository {
             gradientColors = listOf(0xFFFF3DAD, 0xFF008BFF),
             iconName = "MusicNote",
             drawableResName = "genre_samba_pagode",
-            excludedKeywords = listOf("heavy metal", "techno", "classical", "punk", "rock", "metal"),
+            excludedKeywords = listOf("heavy metal", "techno", "classical", "punk", "rock", "metal", "sertanejo", "gospel", "evangelica", "catolica", "jazz", "country", "dance", "edm"),
             countryCode = "BR"
         ),
         RadioCategory(
@@ -271,7 +271,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF00E5D4, 0xFF8B5CF6),
             iconName = "Church",
             drawableResName = "genre_gospel",
-            excludedKeywords = listOf("catholic", "catolica", "heavy metal", "funk")
+            excludedKeywords = listOf("catholic", "catolica", "aparecida", "terco", "terço", "cancao nova", "canção nova", "padre", "papa", "heavy metal", "funk", "samba", "pagode", "sertanejo", "secular", "rock n roll", "carnaval")
         ),
         RadioCategory(
             id = "eletronica",
@@ -282,7 +282,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF00E5D4, 0xFFFF3DAD),
             iconName = "Equalizer",
             drawableResName = "genre_eletronica",
-            excludedKeywords = listOf("classical", "sertanejo", "country", "pagode", "samba", "rock")
+            excludedKeywords = listOf("classical", "sertanejo", "country", "pagode", "samba", "rock", "gospel", "evangelica", "catolica", "acoustic", "acustico", "forro")
         ),
         RadioCategory(
             id = "lendas_tributos",
@@ -293,7 +293,7 @@ class RadioRepository {
             gradientColors = listOf(0xFFFF3DAD, 0xFF8B5CF6),
             iconName = "Star",
             drawableResName = "genre_lendas_tributos",
-            excludedKeywords = listOf("talk", "news", "heavy metal", "death metal")
+            excludedKeywords = listOf("talk", "news", "heavy metal", "death metal", "funk", "sertanejo", "gospel", "catolica")
         ),
         RadioCategory(
             id = "meditacao",
@@ -304,7 +304,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF00E5D4, 0xFF008BFF),
             iconName = "Spa",
             drawableResName = "genre_meditacao",
-            excludedKeywords = listOf("rock", "pop", "dance", "rap", "metal", "talk", "news", "energetic", "reggae", "sertanejo")
+            excludedKeywords = listOf("rock", "pop", "dance", "rap", "metal", "talk", "news", "energetic", "reggae", "sertanejo", "pagode", "samba", "funk", "party")
         ),
         RadioCategory(
             id = "natureza_sono",
@@ -315,7 +315,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF008BFF, 0xFF00E5D4),
             iconName = "Bedtime",
             drawableResName = "genre_natureza_sono",
-            excludedKeywords = listOf("rock", "pop", "dance", "rap", "metal", "talk", "news", "drum", "beat", "techno")
+            excludedKeywords = listOf("rock", "pop", "dance", "rap", "metal", "talk", "news", "drum", "beat", "techno", "edm", "party", "vocal", "sing", "sertanejo")
         ),
         RadioCategory(
             id = "lofi_estudo",
@@ -326,7 +326,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF8B5CF6, 0xFFFF3DAD),
             iconName = "Headphones",
             drawableResName = "genre_lofi_estudo",
-            excludedKeywords = listOf("rock", "metal", "heavy metal", "death metal", "talk", "news", "hardcore")
+            excludedKeywords = listOf("rock", "metal", "heavy metal", "death metal", "talk", "news", "hardcore", "dance", "edm", "party", "sertanejo", "funk")
         ),
         RadioCategory(
             id = "acustico",
@@ -337,7 +337,7 @@ class RadioRepository {
             gradientColors = listOf(0xFF00E5D4, 0xFF8B5CF6),
             iconName = "MusicNote",
             drawableResName = "genre_acustico",
-            excludedKeywords = listOf("electronic", "dance", "techno", "metal", "heavy metal", "rap", "hip hop")
+            excludedKeywords = listOf("electronic", "dance", "techno", "metal", "heavy metal", "rap", "hip hop", "sertanejo", "funk", "pagode")
         )
     )
 
@@ -734,14 +734,32 @@ class RadioRepository {
 
         // 1. Adiciona as estações curadas locais desta categoria (com filtro estrito anti-mistura)
         val curatedMatching = curatedStations.filter { st ->
-            val text = "${st.name} ${st.genre} ${st.description}".lowercase()
-            val isExcluded = category.excludedKeywords.any { excluded ->
-                text.contains(excluded.lowercase())
+            when (category.id) {
+                "catolica" -> st.genre.equals("Católica", ignoreCase = true)
+                "classica" -> st.genre.contains("Clássica", ignoreCase = true)
+                "jazz_blues" -> st.genre.equals("Jazz & Blues", ignoreCase = true)
+                "classic_rock" -> st.genre.equals("Classic Rock", ignoreCase = true)
+                "love_songs" -> st.genre.equals("Love Songs", ignoreCase = true)
+                "lounge" -> st.genre.equals("Lounge & Chillout", ignoreCase = true)
+                "love_rock" -> st.genre.equals("Love Rock", ignoreCase = true)
+                "pop_hits" -> st.genre.equals("Pop & Top 40", ignoreCase = true)
+                "greatest_hits" -> st.genre.equals("Greatest Hits", ignoreCase = true)
+                "anos_70" -> st.genre.equals("Anos 70", ignoreCase = true)
+                "anos_80" -> st.genre.equals("Anos 80", ignoreCase = true)
+                "anos_90" -> st.genre.equals("Anos 90", ignoreCase = true)
+                "anos_2000" -> st.genre.equals("Anos 2000", ignoreCase = true)
+                "sertanejo" -> st.genre.equals("Sertanejo", ignoreCase = true)
+                "mpb_bossa" -> st.genre.equals("MPB & Bossa Nova", ignoreCase = true)
+                "samba_pagode" -> st.genre.equals("Samba & Pagode", ignoreCase = true)
+                "gospel" -> st.genre.equals("Gospel & Adoração", ignoreCase = true)
+                "eletronica" -> st.genre.equals("Eletrônica & Dance", ignoreCase = true)
+                "lendas_tributos" -> st.genre.equals("Lendas & Tributos 24h", ignoreCase = true)
+                "meditacao" -> st.genre.equals("Meditação & Yoga", ignoreCase = true)
+                "natureza_sono" -> st.genre.equals("Sons da Natureza & Dormir", ignoreCase = true)
+                "lofi_estudo" -> st.genre.equals("Lo-Fi Foco & Estudo", ignoreCase = true)
+                "acustico" -> st.genre.equals("Acústico Suave & Café", ignoreCase = true)
+                else -> st.genre.equals(category.name, ignoreCase = true)
             }
-            if (isExcluded) return@filter false
-
-            st.genre.equals(category.name, ignoreCase = true) ||
-            category.tags.any { tag -> text.contains(tag.lowercase()) }
         }
         for (st in curatedMatching) {
             seenUuids.add(st.id)
@@ -784,15 +802,23 @@ class RadioRepository {
                     }
 
                     // FILTRAGEM RIGOROSA DE GÊNERO:
-                    val stName = dto.name ?: ""
-                    val stTags = dto.tags ?: ""
-                    val fullText = "$stName $stTags".lowercase()
+                    val stName = (dto.name ?: "").lowercase()
+                    val stTags = (dto.tags ?: "").lowercase()
+                    val fullText = "$stName $stTags"
 
                     // Descarta qualquer estação que contenha palavras excluídas desta categoria
                     val isExcluded = category.excludedKeywords.any { excluded ->
                         fullText.contains(excluded.lowercase())
                     }
                     if (isExcluded) continue
+
+                    // Validação de afinidade positiva estrita: deve conter pelo menos uma das tags da categoria
+                    val tagsList = stTags.split(",").map { it.trim() }
+                    val matchesCategoryTag = category.tags.any { t ->
+                        val lowerTag = t.lowercase()
+                        tagsList.contains(lowerTag) || stName.contains(lowerTag)
+                    }
+                    if (!matchesCategoryTag) continue
 
                     seenUuids.add(uuid)
                     combinedList.add(dto.toRadioStation(category.name))

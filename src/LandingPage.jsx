@@ -7,9 +7,9 @@ import {
 } from 'lucide-react';
 
 export default function LandingPage() {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
   const [activeStep, setActiveStep] = useState(1);
-  const [downloadCount, setDownloadCount] = useState(1284);
+  const [downloadCount, setDownloadCount] = useState(1320);
   const [hasDownloaded, setHasDownloaded] = useState(false);
 
   const toggleTheme = () => setIsDark(!isDark);
@@ -20,7 +20,7 @@ export default function LandingPage() {
     // Dispara download direto do APK
     const link = document.createElement('a');
     link.href = '/OlirumPlay.apk';
-    link.download = 'OlirumPlay-v1.14.0.apk';
+    link.download = 'OlirumPlay-v1.14.1.apk';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -39,19 +39,19 @@ export default function LandingPage() {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 font-sans ${
-      isDark ? 'bg-[#070B14] text-slate-100' : 'bg-[#F8FAFC] text-slate-900'
+      isDark ? 'bg-[#0B0F19] text-slate-100' : 'bg-[#F1F5F9] text-slate-800'
     }`}>
 
       {/* ==================================================================== */}
       {/* 1. BARRA DE NAVEGAÇÃO SUPERIOR CLEAN                                 */}
       {/* ==================================================================== */}
       <header className={`sticky top-0 z-50 backdrop-blur-md border-b transition-colors ${
-        isDark ? 'bg-[#070B14]/85 border-slate-800/80' : 'bg-white/85 border-slate-200/80'
+        isDark ? 'bg-[#0B0F19]/85 border-slate-800/80' : 'bg-[#F8FAFC]/85 border-slate-200/80'
       }`}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#00E5D4] via-[#008BFF] to-[#FF3DAD] flex items-center justify-center p-0.5 shadow-sm">
-              <div className="w-full h-full bg-[#070B14] rounded-[10px] flex items-center justify-center">
+              <div className="w-full h-full bg-[#0B0F19] rounded-[10px] flex items-center justify-center">
                 <Music className="w-5 h-5 text-[#00E5D4]" />
               </div>
             </div>
@@ -60,8 +60,8 @@ export default function LandingPage() {
                 <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-[#00E5D4] to-[#008BFF] bg-clip-text text-transparent">
                   OlirumPlay
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                  v1.14.0
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  v1.14.1
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 hidden sm:block">Rádios ao Vivo & Pastas do Celular</p>
@@ -134,7 +134,7 @@ export default function LandingPage() {
                   <Download className="w-6 h-6 animate-bounce" />
                   <div className="text-left">
                     <div className="leading-tight">BAIXAR OLIRUMPLAY APK</div>
-                    <div className="text-[11px] font-normal text-white/80">Versão 1.14.0 Oficial • 37.1 MB • 100% Grátis</div>
+                    <div className="text-[11px] font-normal text-white/80">Versão 1.14.1 Oficial • 37.1 MB • 100% Grátis</div>
                   </div>
                 </button>
               </div>
@@ -531,7 +531,7 @@ export default function LandingPage() {
             className="w-full sm:w-auto px-10 py-4 rounded-2xl font-black text-lg text-white bg-gradient-to-r from-[#008BFF] via-[#00B4D8] to-[#00E5D4] hover:shadow-xl hover:shadow-[#008BFF]/30 active:scale-95 transition-all inline-flex items-center justify-center space-x-3 cursor-pointer"
           >
             <Download className="w-6 h-6" />
-            <span>BAIXAR APK GRATUITO (v1.14.0)</span>
+            <span>BAIXAR APK GRATUITO (v1.14.1)</span>
           </button>
 
           <div className="mt-4 text-xs text-slate-500">
