@@ -20,7 +20,7 @@ export default function LandingPage() {
     // Dispara download direto do APK
     const link = document.createElement('a');
     link.href = '/OlirumPlay.apk';
-    link.download = 'OlirumPlay-v1.14.1.apk';
+    link.download = 'OlirumPlay-v1.15.0.apk';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -61,7 +61,7 @@ export default function LandingPage() {
                   OlirumPlay
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  v1.14.1
+                  v1.15.0
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 hidden sm:block">Rádios ao Vivo & Pastas do Celular</p>
@@ -134,7 +134,7 @@ export default function LandingPage() {
                   <Download className="w-6 h-6 animate-bounce" />
                   <div className="text-left">
                     <div className="leading-tight">BAIXAR OLIRUMPLAY APK</div>
-                    <div className="text-[11px] font-normal text-white/80">Versão 1.14.1 Oficial • 37.1 MB • 100% Grátis</div>
+                    <div className="text-[11px] font-normal text-white/80">Versão 1.15.0 Oficial • 37.1 MB • 100% Grátis</div>
                   </div>
                 </button>
               </div>
@@ -531,7 +531,7 @@ export default function LandingPage() {
             className="w-full sm:w-auto px-10 py-4 rounded-2xl font-black text-lg text-white bg-gradient-to-r from-[#008BFF] via-[#00B4D8] to-[#00E5D4] hover:shadow-xl hover:shadow-[#008BFF]/30 active:scale-95 transition-all inline-flex items-center justify-center space-x-3 cursor-pointer"
           >
             <Download className="w-6 h-6" />
-            <span>BAIXAR APK GRATUITO (v1.14.1)</span>
+            <span>BAIXAR APK GRATUITO (v1.15.0)</span>
           </button>
 
           <div className="mt-4 text-xs text-slate-500">

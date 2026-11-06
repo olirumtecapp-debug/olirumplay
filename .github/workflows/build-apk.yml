@@ -38,21 +38,21 @@ jobs:
         run: |
           mkdir -p release-apk
           if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
-            cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay-v1.14.1.apk
+            cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay-v1.15.0.apk
             cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay.apk
-            cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay-v1.14.1.apk
+            cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay-v1.15.0.apk
             cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay.apk
           else
-            cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.14.1.apk
+            cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.15.0.apk
             cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay.apk
-            cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.14.1.apk
+            cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.15.0.apk
             cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay.apk
           fi
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OlirumPlay-APK-v1.14.1
+          name: OlirumPlay-APK-v1.15.0
           path: release-apk/*
           retention-days: 30
 
@@ -60,22 +60,21 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
         with:
-          tag_name: v1.14.1
-          name: "OlirumPlay v1.14.1 - Harmonia Visual, Presets Anti-Quebra e Filtro Estrito de Radios"
+          tag_name: v1.15.0
+          name: "OlirumPlay v1.15.0 - Rádios do Brasil (Nacionais FM/AM) e Filtro Inteligente Anti-Duplicação"
           body: |
-            ### OlirumPlay v1.14.1 - Harmonia Visual, Presets Anti-Quebra e Filtro Estrito de Radios
+            ### OlirumPlay v1.15.0 - Rádios do Brasil (Nacionais FM/AM) e Filtro Inteligente Anti-Duplicação
 
-            **Novidades e Ajustes Solicitados:**
-            - **Equalizador e Presets Harmonizados:**
-              - Layout de 3 colunas simetricas para os modos: "Mega Bass", "Voz Clara" e "Modo Estrada".
-              - Tipografia ajustada para nao quebrar linha em nenhuma tela no badge ativo e nos botoes.
-            - **Filtro Anti-Contaminacao em Radios Online:**
-              - Eliminacao completa de mistura de generos (Catolica, Classica, Jazz, Sertanejo, Rock).
-              - Validacao estrita por tags primarias e palavras-chave negativas.
-            - **Landing Page Acolhedora:**
-              - Paleta de cores suave para os olhos, eliminando o excesso de brilho branco.
-              - Download direto do APK v1.14.1 em https://olirumplay.vercel.app.
+            **Novidades e Melhorias:**
+            - **Nova Categoria: Rádios do Brasil (Nacionais FM/AM):**
+              - Emissoras consagradas de São Paulo, Rio e de todo o país (Antena 1, Alpha FM, JB FM, Rádio Bandeirantes, BandNews FM, Super Rádio Tupi, Mix FM, Saudade FM).
+              - Busca dinâmica com ordenação pelas mais ouvidas do Brasil via Radio Browser API.
+            - **Algoritmo Anti-Duplicação e Filtro Inteligente:**
+              - Eliminação de estações de nichos fortes vazando para múltiplos gêneros genéricos.
+              - Afinidade primária e exclusão cruzada de tags enganosas.
+            - **Capa Oficial Exclusiva:**
+              - Nova capa `genre_nacionais` com identidade visual luminosa e vetorial em alta definição.
           files: |
-            release-apk/OlirumPlay-v1.14.1.apk
+            release-apk/OlirumPlay-v1.15.0.apk
             release-apk/OlirumPlay.apk
           token: ${{ secrets.GITHUB_TOKEN }}
