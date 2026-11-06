@@ -5,7 +5,12 @@
   "redirects": [
     {
       "source": "/OlirumPlay.apk",
-      "destination": "https://github.com/olirumtecapp-debug/olirumplay/releases/download/v1.14.1/OlirumPlay-v1.14.1.apk",
+      "destination": "https://github.com/olirumtecapp-debug/olirumplay/releases/download/v1.15.0/OlirumPlay-v1.15.0.apk",
+      "permanent": false
+    },
+    {
+      "source": "/OlirumPlay-v1.15.0.apk",
+      "destination": "https://github.com/olirumtecapp-debug/olirumplay/releases/download/v1.15.0/OlirumPlay-v1.15.0.apk",
       "permanent": false
     },
     {
@@ -20,7 +25,7 @@
     },
     {
       "source": "/download/apk",
-      "destination": "https://github.com/olirumtecapp-debug/olirumplay/releases/download/v1.14.1/OlirumPlay-v1.14.1.apk",
+      "destination": "https://github.com/olirumtecapp-debug/olirumplay/releases/download/v1.15.0/OlirumPlay-v1.15.0.apk",
       "permanent": false
     }
   ],
