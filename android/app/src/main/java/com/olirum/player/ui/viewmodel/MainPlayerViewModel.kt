@@ -158,10 +158,32 @@ class MainPlayerViewModel(
 
                 _isPlaying.value = mediaController?.isPlaying ?: false
                 _durationMs.value = mediaController?.duration?.coerceAtLeast(0L) ?: 0L
+
+                // Restaura o modo de repetição salvo (padrão REPEAT_MODE_ALL para reprodução contínua)
+                viewModelScope.launch {
+                    prefsRepository.repeatMode.collectLatest { savedMode ->
+                        val modeToUse = if (savedMode == 0) Player.REPEAT_MODE_ALL else savedMode
+                        _repeatMode.value = modeToUse
+                        mediaController?.repeatMode = modeToUse
+                    }
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }, MoreExecutors.directExecutor())
+    }
+
+    private fun ensureServiceStarted() {
+        try {
+            val serviceIntent = android.content.Intent(context, OlirumPlaybackService::class.java)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                androidx.core.content.ContextCompat.startForegroundService(context, serviceIntent)
+            } else {
+                context.startService(serviceIntent)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun startPositionProgressTracker() {
@@ -187,6 +209,7 @@ class MainPlayerViewModel(
     }
 
     fun playRadioStation(station: com.olirum.player.model.RadioStation) {
+        ensureServiceStarted()
         val track = station.toTrack()
         playTrack(track, listOf(track))
         viewModelScope.launch {
@@ -195,6 +218,7 @@ class MainPlayerViewModel(
     }
 
     fun playTrack(track: Track, newQueue: List<Track>? = null) {
+        ensureServiceStarted()
         val controller = mediaController ?: return
         val currentQ = newQueue ?: _queue.value.ifEmpty { listOf(track) }
         _queue.value = currentQ
@@ -229,6 +253,7 @@ class MainPlayerViewModel(
         if (controller.isPlaying) {
             controller.pause()
         } else {
+            ensureServiceStarted()
             controller.play()
         }
     }

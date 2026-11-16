@@ -38,21 +38,21 @@ jobs:
         run: |
           mkdir -p release-apk
           if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
-            cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay-v1.15.0.apk
+            cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay-v1.16.0.apk
             cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay.apk
-            cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay-v1.15.0.apk
+            cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay-v1.16.0.apk
             cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay.apk
           else
-            cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.15.0.apk
+            cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.16.0.apk
             cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay.apk
-            cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.15.0.apk
+            cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.16.0.apk
             cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay.apk
           fi
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OlirumPlay-APK-v1.15.0
+          name: OlirumPlay-APK-v1.16.0
           path: release-apk/*
           retention-days: 30
 
@@ -60,21 +60,23 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
         with:
-          tag_name: v1.15.0
-          name: "OlirumPlay v1.15.0 - Rádios do Brasil (Nacionais FM/AM) e Filtro Inteligente Anti-Duplicação"
+          tag_name: v1.16.0
+          name: "OlirumPlay v1.16.0 - Blindagem Total de Persistência em Segundo Plano & Auto-Reconexão"
           body: |
-            ### OlirumPlay v1.15.0 - Rádios do Brasil (Nacionais FM/AM) e Filtro Inteligente Anti-Duplicação
+            ### OlirumPlay v1.16.0 - Blindagem Total de Persistência em Segundo Plano & Auto-Reconexão
 
             **Novidades e Melhorias:**
-            - **Nova Categoria: Rádios do Brasil (Nacionais FM/AM):**
-              - Emissoras consagradas de São Paulo, Rio e de todo o país (Antena 1, Alpha FM, JB FM, Rádio Bandeirantes, BandNews FM, Super Rádio Tupi, Mix FM, Saudade FM).
-              - Busca dinâmica com ordenação pelas mais ouvidas do Brasil via Radio Browser API.
-            - **Algoritmo Anti-Duplicação e Filtro Inteligente:**
-              - Eliminação de estações de nichos fortes vazando para múltiplos gêneros genéricos.
-              - Afinidade primária e exclusão cruzada de tags enganosas.
-            - **Capa Oficial Exclusiva:**
-              - Nova capa `genre_nacionais` com identidade visual luminosa e vetorial em alta definição.
+            - **Partida Explícita do Foreground Service:**
+              - Serviço iniciado de forma autônoma (`startForegroundService`), tornando a execução independente do fechamento ou suspensão da interface.
+            - **WakeLock & WifiLock de Alta Performance:**
+              - CPU mantida acordada durante a reprodução ativa e Wi-Fi protegido contra suspensão Doze em segundo plano.
+            - **Auto-Reconexão Resiliente para Rádios:**
+              - Emissoras de rádio online reconectam suavemente após quedas temporárias de rede (4G/Wi-Fi) sem parar o player.
+            - **Auto-Skip sem Travamento para Arquivos Locais:**
+              - Falhas em faixas isoladas avançam diretamente para a próxima música sem cortar a playlist.
+            - **Repetição Contínua Ativa:**
+              - Playlists locais continuam rodando sem interrupção repentina.
           files: |
-            release-apk/OlirumPlay-v1.15.0.apk
+            release-apk/OlirumPlay-v1.16.0.apk
             release-apk/OlirumPlay.apk
           token: ${{ secrets.GITHUB_TOKEN }}
