@@ -102,14 +102,6 @@ class MainPlayerViewModel(
                 mediaController?.addListener(object : Player.Listener {
                     override fun onIsPlayingChanged(playing: Boolean) {
                         _isPlaying.value = playing
-                        val current = _currentTrack.value
-                        com.olirum.player.OlirumPlayerWidget.updateAllWidgets(
-                            context,
-                            current?.title,
-                            current?.artist,
-                            playing,
-                            current?.artworkUri
-                        )
                     }
 
                     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -131,13 +123,6 @@ class MainPlayerViewModel(
                                 }
                             }
                             _currentTrack.value = track
-                            com.olirum.player.OlirumPlayerWidget.updateAllWidgets(
-                                context,
-                                track.title,
-                                track.artist,
-                                mediaController?.isPlaying ?: false,
-                                track.artworkUri
-                            )
                             if (track.source == "radio") {
                                 _durationMs.value = 0L
                                 _currentPositionMs.value = 0L
