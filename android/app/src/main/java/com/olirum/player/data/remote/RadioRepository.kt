@@ -10,6 +10,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
+import java.net.URI
+import java.text.Normalizer
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
 data class RadioBrowserStationDto(
@@ -842,50 +845,130 @@ class RadioRepository {
     )
 
     // Consulta estações reais da Radio Browser por categoria com fallback inteligente
+    private val radioMarks = Regex("\\p{M}+")
+    private val radioSeparator = Regex("[^a-z0-9]+")
+
+    private fun normalizedWords(value: String): String =
+        Normalizer.normalize(value.lowercase(Locale.ROOT), Normalizer.Form.NFD)
+            .replace(radioMarks, "")
+            .replace(radioSeparator, " ")
+            .trim()
+
+    private fun containsPhrase(words: String, phrase: String): Boolean =
+        phrase.isNotEmpty() && " $phrase " in " $words "
+
+    private fun streamKey(url: String): String {
+        val trimmed = url.trim()
+        val uri = runCatching { URI(trimmed) }.getOrNull() ?: return trimmed
+        val host = uri.host?.lowercase(Locale.ROOT) ?: return trimmed
+        val port = if (uri.port == -1 || uri.scheme.equals("http", true) && uri.port == 80 ||
+            uri.scheme.equals("https", true) && uri.port == 443) "" else ":${uri.port}"
+        val query = uri.rawQuery?.let { "?$it" }.orEmpty()
+        return host + port + uri.rawPath.orEmpty().ifEmpty { "/" } + query
+    }
+
+    private val curatedStreamKeys by lazy {
+        curatedStations.mapTo(mutableSetOf()) { streamKey(it.streamUrl) }
+    }
+
+    private fun categoryFor(dto: RadioBrowserStationDto): RadioCategory? {
+        val name = normalizedWords(dto.name.orEmpty())
+        val tags = dto.tags.orEmpty().split(',').map(::normalizedWords).filter(String::isNotEmpty)
+        val metadata = listOf(name) + tags
+        val romanticRock = listOf("love rock", "soft rock", "romantic rock", "rock ballads")
+            .any { phrase -> metadata.any { containsPhrase(it, phrase) } }
+        val rock = metadata.any { containsPhrase(it, "rock") }
+        val classicRock = metadata.any { containsPhrase(it, "classic rock") || containsPhrase(it, "hard rock") }
+        val country = dto.countryCode
+
+        return categories.asSequence().mapNotNull { candidate ->
+            if (candidate.countryCode != null && !candidate.countryCode.equals(country, ignoreCase = true)) {
+                return@mapNotNull null
+            }
+            if (candidate.id == "nacionais") {
+                return@mapNotNull if (country.equals("BR", ignoreCase = true)) candidate to 0 else null
+            }
+            if (rock && candidate.id in listOf("love_songs", "pop_hits", "greatest_hits", "lounge")) {
+                return@mapNotNull null
+            }
+            if (candidate.id == "love_rock" && !romanticRock &&
+                (!rock || classicRock)) return@mapNotNull null
+            if (candidate.excludedKeywords.any { keyword ->
+                val phrase = normalizedWords(keyword)
+                metadata.any { containsPhrase(it, phrase) }
+            }) return@mapNotNull null
+
+            val primary = normalizedWords(candidate.primaryTag)
+            val score = candidate.tags.maxOfOrNull { tag ->
+                val phrase = normalizedWords(tag)
+                when {
+                    containsPhrase(name, phrase) -> 100 + phrase.length.coerceAtMost(30)
+                    tags.firstOrNull() == phrase -> 60 + if (phrase == primary) 5 else 0
+                    phrase in tags -> 30 + if (phrase == primary) 5 else 0
+                    else -> 0
+                }
+            } ?: 0
+            if (score == 0) return@mapNotNull null
+            val rockPriority = when {
+                candidate.id == "love_rock" && romanticRock -> 200
+                candidate.id == "classic_rock" && classicRock -> 150
+                else -> 0
+            }
+            candidate to (score + rockPriority)
+        }.maxByOrNull { it.second }?.first
+    }
+
+    private fun curatedMatches(st: RadioStation, category: RadioCategory): Boolean =
+        when (category.id) {
+            "nacionais" -> st.genre.equals("Rádios do Brasil", ignoreCase = true)
+            "catolica" -> st.genre.equals("Católica", ignoreCase = true)
+            "classica" -> st.genre.contains("Clássica", ignoreCase = true)
+            "jazz_blues" -> st.genre.equals("Jazz & Blues", ignoreCase = true)
+            "classic_rock" -> st.genre.equals("Classic Rock", ignoreCase = true)
+            "love_songs" -> st.genre.equals("Love Songs", ignoreCase = true)
+            "lounge" -> st.genre.equals("Lounge & Chillout", ignoreCase = true)
+            "love_rock" -> st.genre.equals("Love Rock", ignoreCase = true)
+            "pop_hits" -> st.genre.equals("Pop & Top 40", ignoreCase = true)
+            "greatest_hits" -> st.genre.equals("Greatest Hits", ignoreCase = true)
+            "anos_70" -> st.genre.equals("Anos 70", ignoreCase = true)
+            "anos_80" -> st.genre.equals("Anos 80", ignoreCase = true)
+            "anos_90" -> st.genre.equals("Anos 90", ignoreCase = true)
+            "anos_2000" -> st.genre.equals("Anos 2000", ignoreCase = true)
+            "sertanejo" -> st.genre.equals("Sertanejo", ignoreCase = true)
+            "mpb_bossa" -> st.genre.equals("MPB & Bossa Nova", ignoreCase = true)
+            "samba_pagode" -> st.genre.equals("Samba & Pagode", ignoreCase = true)
+            "gospel" -> st.genre.equals("Gospel & Adoração", ignoreCase = true)
+            "eletronica" -> st.genre.equals("Eletrônica & Dance", ignoreCase = true)
+            "lendas_tributos" -> st.genre.equals("Lendas & Tributos 24h", ignoreCase = true)
+            "meditacao" -> st.genre.equals("Meditação & Yoga", ignoreCase = true)
+            "natureza_sono" -> st.genre.equals("Sons da Natureza & Dormir", ignoreCase = true)
+            "lofi_estudo" -> st.genre.equals("Lo-Fi Foco & Estudo", ignoreCase = true)
+            "acustico" -> st.genre.equals("Acústico Suave & Café", ignoreCase = true)
+            else -> st.genre.equals(category.name, ignoreCase = true)
+        }
+
     suspend fun getStationsForCategory(category: RadioCategory, limit: Int = 40): List<RadioStation> = withContext(Dispatchers.IO) {
         // Verifica se já está em cache
-        categoryCache[category.id]?.let { return@withContext it }
+        val cacheKey = "${category.id}:$limit"
+        categoryCache[cacheKey]?.let { return@withContext it }
 
         val combinedList = mutableListOf<RadioStation>()
         val seenUuids = mutableSetOf<String>()
+        val seenStreams = mutableSetOf<String>()
 
         // 1. Adiciona as estações curadas locais desta categoria (com filtro estrito anti-mistura)
-        val curatedMatching = curatedStations.filter { st ->
-            when (category.id) {
-                "nacionais" -> st.genre.equals("Rádios do Brasil", ignoreCase = true)
-                "catolica" -> st.genre.equals("Católica", ignoreCase = true)
-                "classica" -> st.genre.contains("Clássica", ignoreCase = true)
-                "jazz_blues" -> st.genre.equals("Jazz & Blues", ignoreCase = true)
-                "classic_rock" -> st.genre.equals("Classic Rock", ignoreCase = true)
-                "love_songs" -> st.genre.equals("Love Songs", ignoreCase = true)
-                "lounge" -> st.genre.equals("Lounge & Chillout", ignoreCase = true)
-                "love_rock" -> st.genre.equals("Love Rock", ignoreCase = true)
-                "pop_hits" -> st.genre.equals("Pop & Top 40", ignoreCase = true)
-                "greatest_hits" -> st.genre.equals("Greatest Hits", ignoreCase = true)
-                "anos_70" -> st.genre.equals("Anos 70", ignoreCase = true)
-                "anos_80" -> st.genre.equals("Anos 80", ignoreCase = true)
-                "anos_90" -> st.genre.equals("Anos 90", ignoreCase = true)
-                "anos_2000" -> st.genre.equals("Anos 2000", ignoreCase = true)
-                "sertanejo" -> st.genre.equals("Sertanejo", ignoreCase = true)
-                "mpb_bossa" -> st.genre.equals("MPB & Bossa Nova", ignoreCase = true)
-                "samba_pagode" -> st.genre.equals("Samba & Pagode", ignoreCase = true)
-                "gospel" -> st.genre.equals("Gospel & Adoração", ignoreCase = true)
-                "eletronica" -> st.genre.equals("Eletrônica & Dance", ignoreCase = true)
-                "lendas_tributos" -> st.genre.equals("Lendas & Tributos 24h", ignoreCase = true)
-                "meditacao" -> st.genre.equals("Meditação & Yoga", ignoreCase = true)
-                "natureza_sono" -> st.genre.equals("Sons da Natureza & Dormir", ignoreCase = true)
-                "lofi_estudo" -> st.genre.equals("Lo-Fi Foco & Estudo", ignoreCase = true)
-                "acustico" -> st.genre.equals("Acústico Suave & Café", ignoreCase = true)
-                else -> st.genre.equals(category.name, ignoreCase = true)
-            }
-        }
+        val curatedMatching = curatedStations.filter { curatedMatches(it, category) }
         for (st in curatedMatching) {
-            seenUuids.add(st.id)
-            combinedList.add(st)
+            if (combinedList.size >= limit) break
+            if (seenUuids.add(st.id) && seenStreams.add(streamKey(st.streamUrl))) combinedList.add(st)
         }
 
         // 2. Consulta a API real da Radio Browser para a primaryTag e tags secundárias
-        val tagsToFetch = if (category.id == "lendas_tributos") category.tags.take(6) else category.tags.take(3)
+        val tagsToFetch = when (category.id) {
+            "nacionais" -> listOf(category.primaryTag)
+            "lendas_tributos" -> category.tags.take(6)
+            else -> category.tags.take(3)
+        }
         for (tag in tagsToFetch) {
             try {
                 val api = getApi()
@@ -916,72 +999,15 @@ class RadioRepository {
 
                 for (dto in dtoList) {
                     val uuid = dto.stationUuid ?: continue
-                    val streamUrl = dto.urlResolved ?: dto.url ?: continue
+                    val streamUrl = dto.urlResolved?.takeIf(String::isNotBlank) ?: dto.url ?: continue
                     if (streamUrl.isBlank() || seenUuids.contains(uuid)) continue
 
-                    // Validação de país para categorias estritamente nacionais (Sertanejo, MPB, Samba)
-                    if (category.countryCode != null && !dto.countryCode.isNullOrBlank() &&
-                        !dto.countryCode.equals(category.countryCode, ignoreCase = true)) {
-                        continue
-                    }
+                    val streams = listOfNotNull(dto.url, dto.urlResolved)
+                        .filter(String::isNotBlank).map(::streamKey)
+                    if (streams.any { it in curatedStreamKeys || it in seenStreams }) continue
+                    if (categoryFor(dto)?.id != category.id) continue
 
-                    // FILTRAGEM RIGOROSA DE GÊNERO:
-                    val stName = (dto.name ?: "").lowercase()
-                    val stTags = (dto.tags ?: "").lowercase()
-                    val fullText = "$stName $stTags"
-
-                    // Descarta qualquer estação que contenha palavras excluídas desta categoria
-                    val isExcluded = category.excludedKeywords.any { excluded ->
-                        fullText.contains(excluded.lowercase())
-                    }
-                    if (isExcluded) continue
-
-                    val tagsList = stTags.split(",").map { it.trim() }
-
-                    // FILTRAGEM INTELIGENTE DE RELEVÂNCIA E ANTI-DUPLICAÇÃO:
-                    val isDistinctRock = stName.contains("rock") || stTags.contains("classic rock") || stTags.contains("hard rock")
-                    val isDistinctJazzBlues = stName.contains("jazz") || stName.contains("blues")
-                    val isDistinctClassical = stName.contains("classic") || stTags.contains("classical") || stTags.contains("symphony")
-                    val isDistinctSertanejo = stName.contains("sertanejo") || stTags.contains("sertanejo") || stName.contains("viola")
-                    val isDistinctCatolica = stName.contains("catolica") || stName.contains("evangelizar") || stName.contains("aparecida") || stTags.contains("catholic")
-                    val isDistinctElectronic = stName.contains("techno") || stName.contains("trance") || stTags.contains("techno")
-
-                    // Se estamos em Pop / Greatest Hits / Anos 80 / Love Songs, NÃO deixamos vazar rádios que são declaradamente de nichos fortes:
-                    if (category.id in listOf("pop_hits", "greatest_hits", "love_songs", "lounge")) {
-                        if (isDistinctRock || isDistinctJazzBlues || isDistinctClassical || isDistinctSertanejo || isDistinctCatolica || isDistinctElectronic) {
-                            continue
-                        }
-                    }
-
-                    // Se estamos em Jazz/Blues, a rádio DEVE ter afinidade legítima no nome ou primeiras tags:
-                    if (category.id == "jazz_blues") {
-                        val isRealJazz = stName.contains("jazz") || stName.contains("blues") ||
-                            tagsList.take(2).any { it.contains("jazz") || it.contains("blues") }
-                        if (!isRealJazz) continue
-                    }
-
-                    // Se estamos em Clássica, deve ter afinidade orquestral/erudita real:
-                    if (category.id == "classica") {
-                        val isRealClassical = stName.contains("classic") || stName.contains("symphon") || stName.contains("orchestr") ||
-                            tagsList.take(2).any { it in listOf("classical", "orchestral", "symphony", "baroque", "opera") }
-                        if (!isRealClassical) continue
-                    }
-
-                    // Se estamos em Rock, deve conter 'rock' no nome ou na tag primária:
-                    if (category.id in listOf("classic_rock", "love_rock")) {
-                        val isRealRock = stName.contains("rock") || tagsList.take(2).any { it.contains("rock") }
-                        if (!isRealRock) continue
-                    }
-
-                    // Validação de afinidade positiva estrita para categorias padrão:
-                    if (category.id != "nacionais") {
-                        val matchesCategoryTag = category.tags.any { t ->
-                            val lowerTag = t.lowercase()
-                            tagsList.contains(lowerTag) || stName.contains(lowerTag)
-                        }
-                        if (!matchesCategoryTag) continue
-                    }
-
+                    seenStreams.addAll(streams)
                     seenUuids.add(uuid)
                     combinedList.add(dto.toRadioStation(category.name))
                     if (combinedList.size >= limit) break
@@ -992,7 +1018,7 @@ class RadioRepository {
             if (combinedList.size >= limit) break
         }
 
-        categoryCache[category.id] = combinedList
+        if (combinedList.isNotEmpty()) categoryCache[cacheKey] = combinedList
         combinedList
     }
 
@@ -1006,6 +1032,8 @@ class RadioRepository {
     ): List<RadioStation> = withContext(Dispatchers.IO) {
         val cacheKey = "${query.trim().lowercase()}_${categoryName ?: ""}_${countryCode ?: ""}_${language ?: ""}"
         searchCache[cacheKey]?.let { return@withContext it }
+        val selectedCategory = categories.find { it.name.equals(categoryName, ignoreCase = true) || it.id == categoryName }
+        val seenStreams = mutableSetOf<String>()
 
         val results = mutableListOf<RadioStation>()
         val seenUuids = mutableSetOf<String>()
@@ -1019,8 +1047,8 @@ class RadioRepository {
                 it.description.contains(query, ignoreCase = true)
             }
             for (st in localMatches) {
-                seenUuids.add(st.id)
-                results.add(st)
+                if (selectedCategory != null && !curatedMatches(st, selectedCategory)) continue
+                if (seenUuids.add(st.id) && seenStreams.add(streamKey(st.streamUrl))) results.add(st)
             }
         }
 
@@ -1047,6 +1075,12 @@ class RadioRepository {
                 val streamUrl = dto.urlResolved ?: dto.url ?: continue
                 if (streamUrl.isBlank() || seenUuids.contains(uuid)) continue
 
+                val streams = listOfNotNull(dto.url, dto.urlResolved)
+                    .filter(String::isNotBlank).map(::streamKey)
+                if (streams.any { it in seenStreams }) continue
+                if (selectedCategory != null &&
+                    (streams.any { it in curatedStreamKeys } || categoryFor(dto)?.id != selectedCategory.id)) continue
+                seenStreams.addAll(streams)
                 seenUuids.add(uuid)
                 val defaultGenre = categoryName?.takeIf { it != "Todas" } ?: dto.tags?.split(",")?.firstOrNull()?.trim()?.replaceFirstChar { it.uppercase() } ?: "Rádio Online"
                 results.add(dto.toRadioStation(defaultGenre))
@@ -1071,7 +1105,7 @@ class RadioRepository {
     }
 
     private fun RadioBrowserStationDto.toRadioStation(defaultGenre: String): RadioStation {
-        val streamUrl = this.urlResolved ?: this.url ?: ""
+        val streamUrl = this.urlResolved?.takeIf(String::isNotBlank) ?: this.url.orEmpty()
         val tagsList = this.tags?.split(",")?.map { it.trim() }?.filter { it.isNotBlank() } ?: emptyList()
         val genre = tagsList.firstOrNull()?.replaceFirstChar { it.uppercase() } ?: defaultGenre
 
