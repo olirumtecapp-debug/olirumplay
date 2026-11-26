@@ -3,7 +3,6 @@ package com.olirum.player.service
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.os.PowerManager
@@ -11,7 +10,6 @@ import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -20,13 +18,11 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.olirum.player.MainActivity
 import com.olirum.player.OlirumPlayerWidget
-import com.olirum.player.data.local.MediaStoreScanner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class OlirumPlaybackService : MediaSessionService() {
 
@@ -93,6 +89,8 @@ class OlirumPlaybackService : MediaSessionService() {
             .setSessionActivity(pendingIntent)
             .build()
 
+        notifyWidget()
+
         // Listener ativo para sincronizar locks, widget e recuperação automática de falhas
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -101,12 +99,14 @@ class OlirumPlaybackService : MediaSessionService() {
                     retryCount = 0
                     reconnectJob?.cancel()
                 }
-                notifyWidget()
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 retryCount = 0
                 reconnectJob?.cancel()
+            }
+
+            override fun onEvents(player: Player, events: Player.Events) {
                 notifyWidget()
             }
 
@@ -114,7 +114,6 @@ class OlirumPlaybackService : MediaSessionService() {
                 if (playbackState == Player.STATE_ENDED) {
                     updateLocks(false)
                 }
-                notifyWidget()
             }
 
             override fun onPlayerError(error: PlaybackException) {
@@ -184,10 +183,6 @@ class OlirumPlaybackService : MediaSessionService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val action = intent?.action
-        if (action != null) {
-            handleWidgetAction(action)
-        }
         super.onStartCommand(intent, flags, startId)
         return START_STICKY
     }
@@ -201,91 +196,8 @@ class OlirumPlaybackService : MediaSessionService() {
         }
     }
 
-    private fun handleWidgetAction(action: String) {
-        if (!::player.isInitialized) return
-
-        when (action) {
-            OlirumPlayerWidget.ACTION_WIDGET_PLAY_PAUSE -> {
-                if (player.isPlaying) {
-                    player.pause()
-                } else if (player.mediaItemCount > 0) {
-                    player.play()
-                } else {
-                    // Se não há faixa na fila, carrega músicas locais e toca
-                    loadAndPlayLocalTracks()
-                }
-            }
-            OlirumPlayerWidget.ACTION_WIDGET_PREV -> {
-                if (player.currentPosition > 3000) {
-                    player.seekTo(0)
-                } else if (player.hasPreviousMediaItem()) {
-                    player.seekToPreviousMediaItem()
-                }
-            }
-            OlirumPlayerWidget.ACTION_WIDGET_NEXT -> {
-                if (player.hasNextMediaItem()) {
-                    player.seekToNextMediaItem()
-                }
-            }
-        }
-    }
-
-    private fun loadAndPlayLocalTracks() {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val scanner = MediaStoreScanner(applicationContext)
-                val tracks = scanner.scanLocalTracks()
-                if (tracks.isNotEmpty()) {
-                    val mediaItems = tracks.map { track ->
-                        MediaItem.Builder()
-                            .setMediaId(track.id)
-                            .setUri(track.mediaUri)
-                            .setMediaMetadata(
-                                MediaMetadata.Builder()
-                                    .setTitle(track.title)
-                                    .setArtist(track.artist)
-                                    .setAlbumTitle(track.album)
-                                    .setArtworkUri(if (!track.artworkUri.isNullOrBlank()) Uri.parse(track.artworkUri) else null)
-                                    .build()
-                            )
-                            .build()
-                    }
-                    withContext(Dispatchers.Main) {
-                        if (::player.isInitialized) {
-                            player.setMediaItems(mediaItems)
-                            player.prepare()
-                            player.play()
-                        }
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        val launchIntent = Intent(applicationContext, MainActivity::class.java).apply {
-                            this.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        }
-                        applicationContext.startActivity(launchIntent)
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
     private fun notifyWidget() {
-        if (!::player.isInitialized) return
-        val item = player.currentMediaItem
-        val title = item?.mediaMetadata?.title?.toString() ?: "OlirumPlay"
-        val artist = item?.mediaMetadata?.artist?.toString() ?: "Toque para ouvir música"
-        val isPlaying = player.isPlaying
-        val artworkUri = item?.mediaMetadata?.artworkUri?.toString()
-
-        OlirumPlayerWidget.updateAllWidgets(
-            applicationContext,
-            title,
-            artist,
-            isPlaying,
-            artworkUri
-        )
+        OlirumPlayerWidget.refresh(applicationContext)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
@@ -298,6 +210,7 @@ class OlirumPlaybackService : MediaSessionService() {
         reconnectJob = null
         currentPlayer = null
         instance = null
+        notifyWidget()
         mediaSession?.run {
             player.release()
             release()
