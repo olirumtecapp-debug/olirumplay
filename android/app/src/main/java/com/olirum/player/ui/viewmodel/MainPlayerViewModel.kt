@@ -102,51 +102,10 @@ class MainPlayerViewModel(
                 mediaController?.addListener(object : Player.Listener {
                     override fun onIsPlayingChanged(playing: Boolean) {
                         _isPlaying.value = playing
-                        val current = _currentTrack.value
-                        com.olirum.player.OlirumPlayerWidget.updateAllWidgets(
-                            context,
-                            current?.title,
-                            current?.artist,
-                            playing,
-                            current?.artworkUri
-                        )
                     }
 
                     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                        mediaItem?.let { item ->
-                            val track = _queue.value.find { it.id == item.mediaId } ?: Track(
-                                id = item.mediaId,
-                                title = item.mediaMetadata.title?.toString() ?: "Música",
-                                artist = item.mediaMetadata.artist?.toString() ?: "Artista",
-                                album = item.mediaMetadata.albumTitle?.toString() ?: "Álbum",
-                                durationMs = mediaController?.duration?.takeIf { it > 0 } ?: 180000L,
-                                mediaUri = item.requestMetadata.mediaUri?.toString() ?: "",
-                                artworkUri = item.mediaMetadata.artworkUri?.toString()
-                            )
-                            // Verifica se a faixa j? ? favorita no banco
-                            viewModelScope.launch {
-                                val saved = musicRepository.database.trackDao().getTrackById(track.id)
-                                if (saved != null && _currentTrack.value?.id == track.id) {
-                                    _currentTrack.value = _currentTrack.value?.copy(isFavorite = saved.isFavorite)
-                                }
-                            }
-                            _currentTrack.value = track
-                            com.olirum.player.OlirumPlayerWidget.updateAllWidgets(
-                                context,
-                                track.title,
-                                track.artist,
-                                mediaController?.isPlaying ?: false,
-                                track.artworkUri
-                            )
-                            if (track.source == "radio") {
-                                _durationMs.value = 0L
-                                _currentPositionMs.value = 0L
-                            } else {
-                                _durationMs.value = mediaController?.duration?.coerceAtLeast(0L) ?: track.durationMs
-                                resolveCoverIfNeeded(track)
-                                loadLyrics(track)
-                            }
-                        }
+                        showMediaItem(mediaItem)
                     }
 
                     override fun onPlaybackStateChanged(state: Int) {
@@ -158,6 +117,14 @@ class MainPlayerViewModel(
 
                 _isPlaying.value = mediaController?.isPlaying ?: false
                 _durationMs.value = mediaController?.duration?.coerceAtLeast(0L) ?: 0L
+                mediaController?.let { controller ->
+                    if (controller.mediaItemCount > 0) {
+                        showMediaItem(controller.currentMediaItem)
+                        _currentPositionMs.value = controller.currentPosition.coerceAtLeast(0L)
+                    } else {
+                        viewModelScope.launch { restoreLocalPlayback(controller) }
+                    }
+                }
 
                 // Restaura o modo de repetição salvo (padrão REPEAT_MODE_ALL para reprodução contínua)
                 viewModelScope.launch {
@@ -171,6 +138,37 @@ class MainPlayerViewModel(
                 e.printStackTrace()
             }
         }, MoreExecutors.directExecutor())
+    }
+
+    private fun showMediaItem(mediaItem: MediaItem?) {
+        mediaItem?.let { item ->
+            val track = _queue.value.find { it.id == item.mediaId } ?: Track(
+                id = item.mediaId,
+                title = item.mediaMetadata.title?.toString() ?: "Música",
+                artist = item.mediaMetadata.artist?.toString() ?: "Artista",
+                album = item.mediaMetadata.albumTitle?.toString() ?: "Álbum",
+                durationMs = mediaController?.duration?.takeIf { it > 0 } ?: 180000L,
+                mediaUri = (item.localConfiguration?.uri ?: item.requestMetadata.mediaUri)?.toString().orEmpty(),
+                artworkUri = item.mediaMetadata.artworkUri?.toString(),
+                source = if (item.mediaMetadata.albumTitle?.toString() == "Rádio Online ao Vivo") "radio" else "local"
+            )
+            // Verifica se a faixa j? ? favorita no banco
+            viewModelScope.launch {
+                val saved = musicRepository.database.trackDao().getTrackById(track.id)
+                if (saved != null && _currentTrack.value?.id == track.id) {
+                    _currentTrack.value = _currentTrack.value?.copy(isFavorite = saved.isFavorite)
+                }
+            }
+            _currentTrack.value = track
+            if (track.source == "radio") {
+                _durationMs.value = 0L
+                _currentPositionMs.value = 0L
+            } else {
+                _durationMs.value = mediaController?.duration?.coerceAtLeast(0L) ?: track.durationMs
+                resolveCoverIfNeeded(track)
+                loadLyrics(track)
+            }
+        }
     }
 
     private fun ensureServiceStarted() {
@@ -197,9 +195,6 @@ class MainPlayerViewModel(
                         } else {
                             _currentPositionMs.value = controller.currentPosition.coerceAtLeast(0L)
                             _durationMs.value = controller.duration.coerceAtLeast(0L)
-                            _currentTrack.value?.let { trk ->
-                                prefsRepository.savePlaybackState(trk.id, controller.currentPosition)
-                            }
                         }
                     }
                 }
@@ -224,20 +219,7 @@ class MainPlayerViewModel(
         _queue.value = currentQ
         _currentTrack.value = track
 
-        val mediaItems = currentQ.map { item ->
-            val meta = MediaMetadata.Builder()
-                .setTitle(item.title)
-                .setArtist(item.artist)
-                .setAlbumTitle(item.album)
-                .setArtworkUri(item.artworkUri?.let { Uri.parse(it) })
-                .build()
-
-            MediaItem.Builder()
-                .setMediaId(item.id)
-                .setUri(item.mediaUri)
-                .setMediaMetadata(meta)
-                .build()
-        }
+        val mediaItems = mediaItemsFor(currentQ)
 
         val startIndex = currentQ.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
 
@@ -246,6 +228,46 @@ class MainPlayerViewModel(
         controller.play()
         resolveCoverIfNeeded(track)
         loadLyrics(track)
+    }
+
+    private suspend fun restoreLocalPlayback(controller: MediaController) {
+        if (controller.mediaItemCount > 0) return
+        val saved = prefsRepository.lastLocalPlayback.first() ?: return
+        val available = try {
+            musicRepository.scanLocalTracks().associateBy { it.id }
+        } catch (_: SecurityException) {
+            return
+        }
+        val track = available[saved.trackId] ?: return
+        if (mediaController !== controller || controller.mediaItemCount > 0 || _currentTrack.value != null) return
+
+        val queue = saved.queueIds.mapNotNull(available::get).takeIf { tracks -> tracks.any { it.id == track.id } }
+            ?: listOf(track)
+        val index = queue.indexOfFirst { it.id == track.id }
+        val position = if (track.durationMs > 0) saved.positionMs.coerceAtMost(track.durationMs - 1) else saved.positionMs
+        _queue.value = queue
+        _currentTrack.value = track
+        _currentPositionMs.value = position
+        controller.setMediaItems(mediaItemsFor(queue), index, position)
+        controller.prepare()
+    }
+
+    private fun mediaItemsFor(tracks: List<Track>): List<MediaItem> = tracks.map { item ->
+        val meta = MediaMetadata.Builder()
+            .setTitle(item.title)
+            .setArtist(item.artist)
+            .setAlbumTitle(item.album)
+            .setArtworkUri(item.artworkUri?.let { Uri.parse(it) })
+            .build()
+        MediaItem.Builder()
+            .setMediaId(item.id)
+            .setUri(item.mediaUri)
+            .setMediaMetadata(meta)
+            .build()
+    }
+
+    fun resumeLocalPlayback() {
+        if (_currentTrack.value?.source == "local") mediaController?.play()
     }
 
     fun togglePlayPause() {

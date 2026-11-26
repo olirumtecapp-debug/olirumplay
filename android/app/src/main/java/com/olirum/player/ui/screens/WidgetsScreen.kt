@@ -174,7 +174,7 @@ fun WidgetsScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
-                            text = "Como Adicionar:\n1. Vá para a tela inicial do seu celular e pressione e segure um espaço vazio.\n2. Selecione 'Widgets' no menu do Android.\n3. Procure por 'OlirumPlay' e arraste o widget para onde preferir.",
+                            text = "Como Adicionar:\n1. Vá para a tela inicial do seu celular e pressione e segure um espaço vazio.\n2. Selecione 'Widgets' no menu do Android.\n3. Procure por 'OlirumPlay' e escolha o formato: 1×1 para tocar e pausar, 4×1 para ver a faixa e usar os controles, ou o modelo com capa.",
                             fontSize = 12.sp,
                             color = colors.textSecondary,
                             lineHeight = 18.sp

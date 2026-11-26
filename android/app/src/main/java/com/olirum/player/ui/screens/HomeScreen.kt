@@ -1,5 +1,7 @@
 package com.olirum.player.ui.screens
 
+import android.text.format.DateUtils
+import coil.compose.AsyncImage
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,10 +45,12 @@ fun HomeScreen(
     onNavigateToLibrary: () -> Unit,
     onNavigateToWidgets: () -> Unit,
     onNavigateToVideos: () -> Unit = {},
+    onOpenPlayer: () -> Unit = {},
     onCategoryClick: (RadioCategory) -> Unit
 ) {
     val colors = LocalOlirumColors.current
     val currentTrack by viewModel.currentTrack.collectAsState()
+    val positionMs by viewModel.currentPositionMs.collectAsState()
     val isPlaying by viewModel.isPlaying.collectAsState()
     val isDarkMode by viewModel.isDarkMode.collectAsState()
 
@@ -115,6 +119,48 @@ fun HomeScreen(
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis
                     )
+                }
+            }
+
+            currentTrack?.takeIf { it.source == "local" }?.let { track ->
+                item(key = "continue_local_playback") {
+                    Surface(
+                        onClick = {
+                            viewModel.resumeLocalPlayback()
+                            onOpenPlayer()
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = colors.surface
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier.size(52.dp).clip(RoundedCornerShape(10.dp))
+                                    .background(colors.background),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Rounded.MusicNote, null, tint = colors.textSecondary)
+                                if (!track.artworkUri.isNullOrBlank()) {
+                                    AsyncImage(track.artworkUri, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                                }
+                            }
+                            Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                                Text("Continuar ouvindo", color = colors.textSecondary, fontSize = 12.sp)
+                                Text(track.title, color = colors.textPrimary, fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(DateUtils.formatElapsedTime(positionMs / 1000), color = colors.textSecondary,
+                                    fontSize = 12.sp)
+                            }
+                            Icon(
+                                if (isPlaying) Icons.Rounded.OpenInFull else Icons.Rounded.PlayArrow,
+                                contentDescription = if (isPlaying) "Abrir player" else "Retomar música",
+                                tint = colors.textPrimary
+                            )
+                        }
+                    }
                 }
             }
 

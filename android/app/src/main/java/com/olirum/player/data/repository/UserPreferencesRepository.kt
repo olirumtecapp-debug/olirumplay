@@ -14,6 +14,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "ol
 class UserPreferencesRepository(private val context: Context) {
 
     private object PreferencesKeys {
+        val LAST_QUEUE_IDS = stringPreferencesKey("last_local_queue_ids")
         val LAST_TRACK_ID = stringPreferencesKey("last_track_id")
         val LAST_POSITION_MS = longPreferencesKey("last_position_ms")
         val SHUFFLE_ENABLED = booleanPreferencesKey("shuffle_enabled")
@@ -34,6 +35,22 @@ class UserPreferencesRepository(private val context: Context) {
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { it[PreferencesKeys.LAST_POSITION_MS] ?: 0L }
+
+    data class LocalPlayback(val trackId: String, val positionMs: Long, val queueIds: List<String>)
+
+    val lastLocalPlayback: Flow<LocalPlayback?> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences ->
+            preferences[PreferencesKeys.LAST_TRACK_ID]?.takeIf { it.startsWith("local-") }?.let { id ->
+                LocalPlayback(
+                    id,
+                    (preferences[PreferencesKeys.LAST_POSITION_MS] ?: 0L).coerceAtLeast(0L),
+                    preferences[PreferencesKeys.LAST_QUEUE_IDS].orEmpty().lines().filter { it.startsWith("local-") }
+                )
+            }
+        }
 
     val shuffleEnabled: Flow<Boolean> = context.dataStore.data
         .catch { exception ->
@@ -59,11 +76,12 @@ class UserPreferencesRepository(private val context: Context) {
         }
         .map { it[PreferencesKeys.YOUTUBE_API_KEY] }
 
-    suspend fun savePlaybackState(trackId: String, positionMs: Long) {
+    suspend fun savePlaybackState(trackId: String, positionMs: Long, queueIds: List<String> = emptyList()) {
         try {
             context.dataStore.edit { preferences ->
                 preferences[PreferencesKeys.LAST_TRACK_ID] = trackId
                 preferences[PreferencesKeys.LAST_POSITION_MS] = positionMs
+                preferences[PreferencesKeys.LAST_QUEUE_IDS] = queueIds.joinToString("\n")
             }
         } catch (_: Exception) {}
     }

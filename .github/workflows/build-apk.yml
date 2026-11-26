@@ -2,7 +2,10 @@ name: Build OlirumPlay Native APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master, release/olirumplay-1.17.0]
+    paths:
+      - 'android/**'
+      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 permissions:
@@ -32,27 +35,29 @@ jobs:
       - name: Build APK with Gradle
         run: |
           cd android
-          ./gradlew assembleRelease assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Prepare APK Files
         run: |
           mkdir -p release-apk
-          if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
-            cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay-v1.16.0.apk
-            cp android/app/build/outputs/apk/release/app-release.apk release-apk/OlirumPlay.apk
-            cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay-v1.16.0.apk
-            cp android/app/build/outputs/apk/release/app-release.apk OlirumPlay.apk
-          else
-            cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay-v1.16.0.apk
-            cp android/app/build/outputs/apk/debug/app-debug.apk release-apk/OlirumPlay.apk
-            cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay-v1.16.0.apk
-            cp android/app/build/outputs/apk/debug/app-debug.apk OlirumPlay.apk
-          fi
+          apk=android/app/build/outputs/apk/release/app-release.apk
+          test -s "$apk"
+          cp "$apk" release-apk/OlirumPlay-v1.17.0.apk
+          cp "$apk" release-apk/OlirumPlay.apk
+
+      - name: Verify APK and upgrade signature
+        run: |
+          signer="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -1)"
+          test -n "$signer"
+          curl -fsSL --retry 3 'https://github.com/olirumtecapp-debug/olirumplay/releases/download/v1.16.0/OlirumPlay-v1.16.0.apk' -o /tmp/olirum-previous.apk
+          "$signer" verify --print-certs /tmp/olirum-previous.apk | grep 'certificate SHA-256 digest' > /tmp/olirum-previous-cert
+          "$signer" verify --print-certs release-apk/OlirumPlay-v1.17.0.apk | grep 'certificate SHA-256 digest' > /tmp/olirum-new-cert
+          diff -u /tmp/olirum-previous-cert /tmp/olirum-new-cert
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OlirumPlay-APK-v1.16.0
+          name: OlirumPlay-APK-v1.17.0
           path: release-apk/*
           retention-days: 30
 
@@ -60,23 +65,13 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
         with:
-          tag_name: v1.16.0
-          name: "OlirumPlay v1.16.0 - Blindagem Total de Persistência em Segundo Plano & Auto-Reconexão"
+          tag_name: v1.17.0
+          name: "OlirumPlay v1.17.0"
           body: |
-            ### OlirumPlay v1.16.0 - Blindagem Total de Persistência em Segundo Plano & Auto-Reconexão
-
-            **Novidades e Melhorias:**
-            - **Partida Explícita do Foreground Service:**
-              - Serviço iniciado de forma autônoma (`startForegroundService`), tornando a execução independente do fechamento ou suspensão da interface.
-            - **WakeLock & WifiLock de Alta Performance:**
-              - CPU mantida acordada durante a reprodução ativa e Wi-Fi protegido contra suspensão Doze em segundo plano.
-            - **Auto-Reconexão Resiliente para Rádios:**
-              - Emissoras de rádio online reconectam suavemente após quedas temporárias de rede (4G/Wi-Fi) sem parar o player.
-            - **Auto-Skip sem Travamento para Arquivos Locais:**
-              - Falhas em faixas isoladas avançam diretamente para a próxima música sem cortar a playlist.
-            - **Repetição Contínua Ativa:**
-              - Playlists locais continuam rodando sem interrupção repentina.
+            - Continuar ouvindo no início, com retomada da faixa local, fila e posição.
+            - Widgets 1×1 e 4×1 com controles sincronizados.
+            - Rádios organizadas por categoria principal e deduplicação de streams.
           files: |
-            release-apk/OlirumPlay-v1.16.0.apk
+            release-apk/OlirumPlay-v1.17.0.apk
             release-apk/OlirumPlay.apk
           token: ${{ secrets.GITHUB_TOKEN }}
