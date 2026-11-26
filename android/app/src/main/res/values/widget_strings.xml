@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_compact_label">OlirumPlay 1×1</string>
+    <string name="widget_wide_label">OlirumPlay 4×1</string>
+    <string name="widget_open_player">Abrir OlirumPlay</string>
+    <string name="widget_play">Tocar</string>
+    <string name="widget_pause">Pausar</string>
+</resources>

@@ -129,6 +129,7 @@ fun OlirumNavGraph(
                     composable(Screen.Home.route) {
                         HomeScreen(
                             viewModel = viewModel,
+                            onOpenPlayer = { showFullPlayer = true },
                             onNavigateToDevice = { navController.navigate(Screen.Device.route) },
                             onNavigateToExplore = { navController.navigate(Screen.Explore.route) },
                             onNavigateToRadios = { navController.navigate(Screen.Radios.route) },
