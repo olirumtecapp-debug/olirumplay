@@ -17,10 +17,13 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.olirum.player.MainActivity
+import com.olirum.player.OlirumApplication
 import com.olirum.player.OlirumPlayerWidget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -33,6 +36,7 @@ class OlirumPlaybackService : MediaSessionService() {
     private var wifiLock: WifiManager.WifiLock? = null
     private var reconnectJob: Job? = null
     private var retryCount = 0
+    private val playbackScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     companion object {
         var instance: OlirumPlaybackService? = null
@@ -108,6 +112,13 @@ class OlirumPlaybackService : MediaSessionService() {
 
             override fun onEvents(player: Player, events: Player.Events) {
                 notifyWidget()
+                if (events.containsAny(
+                        Player.EVENT_MEDIA_ITEM_TRANSITION,
+                        Player.EVENT_POSITION_DISCONTINUITY,
+                        Player.EVENT_PLAY_WHEN_READY_CHANGED
+                    )) {
+                    persistLocalPlayback()
+                }
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
@@ -120,6 +131,24 @@ class OlirumPlaybackService : MediaSessionService() {
                 handlePlaybackError(error)
             }
         })
+        playbackScope.launch {
+            while (true) {
+                delay(5_000)
+                if (player.isPlaying) persistLocalPlayback()
+            }
+        }
+    }
+
+    private fun persistLocalPlayback() {
+        val id = player.currentMediaItem?.mediaId?.takeIf { it.startsWith("local-") } ?: return
+        val position = player.currentPosition.coerceAtLeast(0L)
+        val queueIds = (0 until player.mediaItemCount)
+            .map { player.getMediaItemAt(it).mediaId }
+            .filter { it.startsWith("local-") }
+        playbackScope.launch {
+            val preferences = (application as OlirumApplication).preferencesRepository
+            preferences.savePlaybackState(id, position, queueIds)
+        }
     }
 
     private fun updateLocks(isPlaying: Boolean) {
@@ -205,6 +234,7 @@ class OlirumPlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        playbackScope.cancel()
         updateLocks(false)
         reconnectJob?.cancel()
         reconnectJob = null
